@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"], // Global alias for root
+      "@shared/*": ["shared/*"], // Alias for shared folder
+      "@utils/*": ["shared/lib/*"] // Alias for utils across the monorepo
+    }
+  },
+  "include": ["apps/**/*", "shared/**/*"]
+}
