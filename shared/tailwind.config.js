@@ -1,11 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
-  content: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"],
+  content: [
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "../../shared/**/*.{js,ts,jsx,tsx}", // Include shared folder
+  ],
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
+        border: "var(--border-color, #e5e7eb)",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
