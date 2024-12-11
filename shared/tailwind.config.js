@@ -2,8 +2,9 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "../../shared/**/*.{js,ts,jsx,tsx}", // Include shared folder
+    "./components/**/*.{js,ts,jsx,tsx}",
+    "./styles/**/*.{css}",
+    "./lib/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {

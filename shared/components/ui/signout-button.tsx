@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@shared/components/ui/button'; // Adjust path to your shared button component
 import { signOut } from 'firebase/auth';
 import { auth } from '@shared/services/firebase';
 import { useRouter } from 'next/navigation';
@@ -13,11 +14,8 @@ export const SignOutButton = () => {
   };
 
   return (
-    <button
-      onClick={handleSignOut}
-      className="p-2 text-white bg-red-500 rounded-md hover:bg-red-600"
-    >
-      Sign Out
-    </button>
+    <Button variant="destructive" onClick={handleSignOut}>
+      Logout
+    </Button>
   );
 };
