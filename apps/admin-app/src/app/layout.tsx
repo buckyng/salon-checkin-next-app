@@ -52,6 +52,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [open, setOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null); // Add correct type for `user`
   const router = useRouter();
 
@@ -74,7 +75,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {user ? (
-          <SidebarProvider>
+          <SidebarProvider open={open} onOpenChange={setOpen}>
             <AppSidebar items={adminItems} />
             <main>
               <SidebarTrigger />

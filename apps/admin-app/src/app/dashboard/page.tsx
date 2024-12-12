@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@shared/services/firebase';
-import { SignOutButton } from '@shared/components/ui/signout-button';
 import { Button } from '@shared/components/ui/button';
 import { User } from 'firebase/auth';
 
