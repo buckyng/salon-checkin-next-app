@@ -26,6 +26,7 @@ export function AppSidebar({ items }: AppSidebarProps) {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel></SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (

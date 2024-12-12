@@ -5,7 +5,7 @@ import '@shared/styles/global.css';
 import { UserProvider } from '@shared/contexts/UserContext';
 import { SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar';
 import { AppSidebar } from '@shared/components/ui/app-sidebar';
-import { Home, Building, UserRoundSearch, Settings } from 'lucide-react';
+import { Home, Building, User as UserIcon, Settings } from 'lucide-react';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -27,7 +27,7 @@ const geistMono = localFont({
 const adminItems = [
   {
     title: 'Home',
-    url: '/',
+    url: '/dashboard',
     icon: Home,
   },
   {
@@ -38,7 +38,7 @@ const adminItems = [
   {
     title: 'Users',
     url: '/user',
-    icon: UserRoundSearch,
+    icon: UserIcon,
   },
   {
     title: 'Settings',
