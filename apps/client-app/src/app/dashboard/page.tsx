@@ -1,18 +1,11 @@
 'use client';
 
-import { Button } from '@shared/components/ui/button';
-import { SignOutButton } from '@shared/components/ui/signout-button';
-
-const AdminDashboard = () => {
+const DashboardPage = () => {
   return (
-    <div className="container mx-auto mt-10">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <Button variant="destructive">Sign Out</Button>
-        <SignOutButton />
-      </div>
+    <div className="container px-4 mx-auto mt-10">
+      <h1 className="text-2xl font-bold">Welcome to Your Dashboard!</h1>
     </div>
   );
 };
 
-export default AdminDashboard;
+export default DashboardPage;
