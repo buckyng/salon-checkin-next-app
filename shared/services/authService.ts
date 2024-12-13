@@ -21,3 +21,4 @@ export const logout = async () => {
     throw error;
   }
 };
+

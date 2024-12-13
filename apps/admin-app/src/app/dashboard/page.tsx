@@ -1,11 +1,11 @@
 'use client';
 
-import { useUser } from '@shared/contexts/UserContext';
 import { Button } from '@shared/components/ui/button';
+import { useAuth } from '@shared/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 
 const DashboardPage = () => {
-  const { user } = useUser(); // Fetch user and logout from context
+  const { user } = useAuth(); // Fetch user and logout from context
   const router = useRouter();
 
   if (!user) {

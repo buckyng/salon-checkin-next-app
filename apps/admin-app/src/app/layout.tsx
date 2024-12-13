@@ -2,10 +2,12 @@
 
 import localFont from 'next/font/local';
 import '@shared/styles/global.css';
-import { UserProvider, useUser } from '@shared/contexts/UserContext';
+import { UserProvider } from '@shared/contexts/UserContext';
 import { SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar';
 import { AppSidebar } from '@shared/components/ui/app-sidebar';
 import { Home, Building, User as UserIcon, Settings } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { withAuth } from '@shared/components/hoc/withAuth';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -18,45 +20,66 @@ const geistMono = localFont({
   weight: '100 900',
 });
 
-// Menu items.
+// Define menu items for the sidebar
 const adminItems = [
-  { title: 'Home', url: '/dashboard', icon: Home },
-  { title: 'Organizations', url: '/organization', icon: Building },
-  { title: 'Users', url: '/', icon: UserIcon },
-  { title: 'Settings', url: '/', icon: Settings },
+  {
+    title: 'Home',
+    url: '/dashboard',
+    icon: Home,
+  },
+  {
+    title: 'Organizations',
+    url: '/organization',
+    icon: Building,
+  },
+  {
+    title: 'Users',
+    url: '/user',
+    icon: UserIcon,
+  },
+  {
+    title: 'Settings',
+    url: '/settings',
+    icon: Settings,
+  },
 ];
-
-function LayoutContent({ children }: { children: React.ReactNode }) {
-  const { user } = useUser();
-
-  if (!user) {
-    return <main>{children}</main>;
-  }
-
-  return (
-    <SidebarProvider>
-      <AppSidebar items={adminItems} />
-      <main>
-        <SidebarTrigger />
-        {children}
-      </main>
-    </SidebarProvider>
-  );
-}
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  // Determine if the current page is public
+  const isPublicPage = pathname === '/login';
+
+  // Render layout with hooks always called in the same order
+  const layout = isPublicPage ? (
+    <main>
+      <UserProvider>{children}</UserProvider>
+    </main>
+  ) : (
+    withAuth({
+      children: (
+        <SidebarProvider>
+          <AppSidebar items={adminItems} />
+          <main>
+            <SidebarTrigger />
+            <UserProvider>{children}</UserProvider>
+          </main>
+        </SidebarProvider>
+      ),
+      redirectTo: '/login',
+    })
+  );
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <UserProvider>
-          <LayoutContent>{children}</LayoutContent>
-        </UserProvider>
+        {layout}
       </body>
     </html>
   );
