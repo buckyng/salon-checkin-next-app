@@ -1,14 +1,15 @@
 'use client';
 
-import { signInWithGoogle } from '@shared/services/authService';
+import { useUser } from '@shared/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+  const { login } = useUser();
   const router = useRouter();
 
   const handleLogin = async () => {
     try {
-      await signInWithGoogle();
+      await login();
       router.push('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);

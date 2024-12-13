@@ -1,33 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { auth } from '@shared/services/firebase';
+import { useUser } from '@shared/contexts/UserContext';
 import { Button } from '@shared/components/ui/button';
-import { User } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 const DashboardPage = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useUser(); // Fetch user and logout from context
   const router = useRouter();
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      if (!currentUser) {
-        router.push('/login'); // Redirect to login if user is not authenticated
-      } else {
-        setUser(currentUser);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [router]);
 
   if (!user) {
     return <div className="text-center">Loading...</div>;
   }
 
   return (
-    <div className="container px-4 mx-auto mt-10 ">
+    <div className="container px-4 mx-auto mt-10">
       {/* Header Section */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>

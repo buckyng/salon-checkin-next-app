@@ -1,4 +1,3 @@
-import { db } from '@shared/services/firebase';
 import {
   collection,
   getDocs,
@@ -9,22 +8,22 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { Organization } from '@shared/types/organization';
+import { db } from '@shared/services/firebase';
 
-const organizationsCollection = collection(db, 'organizations');
-
+const COLLECTION_NAME = 'organizations';
+const orgCollection = collection(db, COLLECTION_NAME);
 // Fetch all organizations
 export const fetchOrganizations = async (): Promise<Organization[]> => {
-  const snapshot = await getDocs(organizationsCollection);
+  const snapshot = await getDocs(orgCollection);
   return snapshot.docs.map((doc) => ({
     id: doc.id,
-    name: doc.data().name,
-    createdAt: doc.data().createdAt.toDate(),
+    ...(doc.data() as Omit<Organization, 'id'>),
   }));
 };
 
 // Add a new organization
 export const addOrganization = async (name: string): Promise<void> => {
-  await addDoc(organizationsCollection, {
+  await addDoc(orgCollection, {
     name,
     createdAt: serverTimestamp(),
   });
@@ -35,12 +34,12 @@ export const updateOrganization = async (
   id: string,
   name: string
 ): Promise<void> => {
-  const orgDoc = doc(db, 'organizations', id);
+  const orgDoc = doc(db, COLLECTION_NAME, id);
   await updateDoc(orgDoc, { name });
 };
 
 // Delete an organization
 export const deleteOrganization = async (id: string): Promise<void> => {
-  const orgDoc = doc(db, 'organizations', id);
+  const orgDoc = doc(db, COLLECTION_NAME, id);
   await deleteDoc(orgDoc);
 };
