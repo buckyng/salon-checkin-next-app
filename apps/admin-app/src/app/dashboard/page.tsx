@@ -8,10 +8,6 @@ const DashboardPage = () => {
   const { user } = useAuth(); // Fetch user and logout from context
   const router = useRouter();
 
-  if (!user) {
-    return <div className="text-center">Loading...</div>;
-  }
-
   return (
     <div className="container px-4 mx-auto mt-10">
       {/* Header Section */}
@@ -22,7 +18,7 @@ const DashboardPage = () => {
       {/* Welcome Text */}
       <div className="mb-8">
         <h2 className="text-lg font-medium text-gray-700">
-          Welcome, {user.email}
+          Welcome, {user!.email}
         </h2>
       </div>
 
