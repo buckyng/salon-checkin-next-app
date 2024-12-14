@@ -18,7 +18,7 @@ const DashboardPage = () => {
       {/* Welcome Text */}
       <div className="mb-8">
         <h2 className="text-lg font-medium text-gray-700">
-          Welcome, {user!.email}
+          Welcome, {user?.email}
         </h2>
       </div>
 

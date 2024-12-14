@@ -1,44 +1,55 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@shared/services/firebase';
+import { useAuth } from '@shared/contexts/UserContext';
+import { fetchAdminEmails } from '@shared/services/adminService';
 
-interface WithAuthProps {
-  children: ReactNode;
-  redirectTo?: string; // Route to redirect unauthenticated users
-}
+export const withAuth = <P extends object>(
+  WrappedComponent: React.ComponentType<P>,
+  redirectTo = '/login'
+) => {
+  return (props: P) => {
+    const { user, loading } = useAuth();
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [checkingAdmin, setCheckingAdmin] = useState(true);
+    const router = useRouter();
 
-export function withAuth({ children, redirectTo = '/login' }: WithAuthProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+    useEffect(() => {
+      const validateAdmin = async () => {
+        if (loading) return; // Wait for authentication to finish
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-      } else {
-        router.push(redirectTo);
-      }
-      setLoading(false);
-    });
+        if (!user) {
+          router.replace(redirectTo); // Redirect if not authenticated
+          return;
+        }
 
-    return () => unsubscribe();
-  }, [router, redirectTo]);
+        try {
+          const adminEmails = await fetchAdminEmails();
+          if (adminEmails.includes(user.email || '')) {
+            setIsAdmin(true); // Grant access to admin pages
+          } else {
+            router.replace('/login'); // Redirect if not an admin
+          }
+        } catch (error) {
+          console.error('Error validating admin access:', error);
+          router.replace('/login'); // Redirect on error
+        } finally {
+          setCheckingAdmin(false);
+        }
+      };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg">Loading...</p>
-      </div>
-    );
-  }
+      validateAdmin();
+    }, [user, loading, router]);
 
-  if (!user) {
-    return null; // Prevent rendering if user is not authenticated
-  }
+    if (loading || checkingAdmin) {
+      return <p>Loading...</p>; // Show loading state during validation
+    }
 
-  return <>{children}</>;
-}
+    if (!isAdmin) {
+      return null; // Prevent rendering if user is not an admin
+    }
+
+    return <WrappedComponent {...props} />;
+  };
+};
