@@ -7,3 +7,9 @@ export interface Organization {
     uid: string;
   };
 }
+
+export interface OrganizationWithRoles {
+  id: string;
+  name: string;
+  roles: string[];
+}

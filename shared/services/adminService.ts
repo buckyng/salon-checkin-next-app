@@ -15,3 +15,10 @@ export const fetchAdminEmails = async (): Promise<string[]> => {
   });
   return adminEmails;
 };
+
+
+export const validateAdminRole = async (user: { email?: string | null }): Promise<boolean> => {
+  if (!user.email) return false;
+  const adminEmails = await fetchAdminEmails();
+  return adminEmails.includes(user.email);
+};

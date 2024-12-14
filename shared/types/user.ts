@@ -6,3 +6,8 @@ export interface UserType {
   createdAt: Date;
   photoUrl?: string;
 }
+
+export interface UserRole {
+  organizationId: string;
+  roles: string[];
+}
