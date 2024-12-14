@@ -6,8 +6,10 @@ import { UserProvider } from '@shared/contexts/UserContext';
 import { SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar';
 import { AppSidebar } from '@shared/components/ui/app-sidebar';
 import { Home, Building, User as UserIcon, Settings } from 'lucide-react';
-import { usePathname } from 'next/navigation';
 import { withAuth } from '@shared/components/hoc/withAuth';
+import { usePathname } from 'next/navigation';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -21,7 +23,7 @@ const geistMono = localFont({
 });
 
 // Define menu items for the sidebar
-const adminItems = [
+const sidebarItems = [
   {
     title: 'Home',
     url: '/dashboard',
@@ -44,6 +46,18 @@ const adminItems = [
   },
 ];
 
+const ProtectedLayout = withAuth(
+  ({ children }: { children: React.ReactNode }) => (
+    <SidebarProvider>
+      <AppSidebar items={sidebarItems} />
+      <main>
+        <SidebarTrigger />
+        {children}
+      </main>
+    </SidebarProvider>
+  )
+);
+
 export default function RootLayout({
   children,
 }: {
@@ -51,35 +65,24 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
 
-  // Determine if the current page is public
-  const isPublicPage = pathname === '/login';
-
-  // Render layout with hooks always called in the same order
-  const layout = isPublicPage ? (
-    <main>
-      <UserProvider>{children}</UserProvider>
-    </main>
-  ) : (
-    withAuth({
-      children: (
-        <SidebarProvider>
-          <AppSidebar items={adminItems} />
-          <main>
-            <SidebarTrigger />
-            <UserProvider>{children}</UserProvider>
-          </main>
-        </SidebarProvider>
-      ),
-      redirectTo: '/login',
-    })
-  );
+  // Define public pages
+  const publicPages = ['/login'];
+  const isPublicPage = publicPages.includes(pathname);
 
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {layout}
+        <UserProvider>
+          {isPublicPage ? (
+            <main>{children}</main>
+          ) : (
+            <ProtectedLayout>{children}</ProtectedLayout>
+          )}
+          {/* ToastContainer to show toast notifications */}
+          <ToastContainer position="top-right" autoClose={3000} />
+        </UserProvider>
       </body>
     </html>
   );

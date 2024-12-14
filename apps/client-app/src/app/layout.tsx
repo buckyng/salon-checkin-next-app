@@ -7,7 +7,6 @@ import { SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar';
 import { AppSidebar } from '@shared/components/ui/app-sidebar';
 import { Home, Settings } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { withAuth } from '@shared/components/hoc/withAuth';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -21,7 +20,7 @@ const geistMono = localFont({
 });
 
 // Sidebar menu items for client-app
-const clientItems = [
+const sidebarItems = [
   {
     title: 'Home',
     url: '/dashboard',
@@ -45,29 +44,24 @@ export default function RootLayout({
   const publicPages = ['/login', '/signup'];
   const isPublicPage = publicPages.includes(pathname);
 
-  // Prevent hooks order issues by defining layout for public and protected pages
-  const layout = isPublicPage ? (
-    <main>
-      <UserProvider>{children}</UserProvider>
-    </main>
-  ) : (
-    <SidebarProvider>
-      <AppSidebar items={clientItems} />
-      <main>
-        <SidebarTrigger />
-        <UserProvider>
-          {withAuth({ children, redirectTo: '/login' })}
-        </UserProvider>
-      </main>
-    </SidebarProvider>
-  );
-
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {layout}
+        <UserProvider>
+          {isPublicPage ? (
+            <main>{children}</main>
+          ) : (
+            <SidebarProvider>
+              <AppSidebar items={sidebarItems} />
+              <main>
+                <SidebarTrigger />
+                {children}
+              </main>
+            </SidebarProvider>
+          )}
+        </UserProvider>
       </body>
     </html>
   );
