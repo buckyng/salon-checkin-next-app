@@ -2,15 +2,15 @@
 
 import localFont from 'next/font/local';
 import '@shared/styles/global.css';
-import { UserProvider } from '@shared/contexts/UserContext';
 import { SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar';
 import { AppSidebar } from '@shared/components/ui/app-sidebar';
-import { Home, Building, User as UserIcon, Settings } from 'lucide-react';
-import { withAuth } from '@shared/components/hoc/withAuth';
-import { usePathname } from 'next/navigation';
+import { UserProvider } from '@shared/contexts/UserContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { validateAdminRole } from '@shared/services/adminService';
+import { usePathname } from 'next/navigation';
+import { Home, Building, Settings } from 'lucide-react';
+import { withAuth } from '@shared/components/hoc/withAuth';
+import { validateOwnerRole } from '@shared/services/organizationService';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -23,28 +23,10 @@ const geistMono = localFont({
   weight: '100 900',
 });
 
-// Define menu items for the sidebar
+// Sidebar menu items for owner-app
 const sidebarItems = [
-  {
-    title: 'Home',
-    url: '/dashboard',
-    icon: Home,
-  },
-  {
-    title: 'Organizations',
-    url: '/organization',
-    icon: Building,
-  },
-  {
-    title: 'Users',
-    url: '/user',
-    icon: UserIcon,
-  },
-  {
-    title: 'Settings',
-    url: '/settings',
-    icon: Settings,
-  },
+  { title: 'Home', url: '/organizations', icon: Building },
+  { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
 const ProtectedLayout = withAuth(
@@ -57,7 +39,7 @@ const ProtectedLayout = withAuth(
       </main>
     </SidebarProvider>
   ),
-  { validateRole: validateAdminRole }
+  { validateRole: validateOwnerRole }
 );
 
 export default function RootLayout({
@@ -67,7 +49,7 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
 
-  // Define public pages
+  // Public pages (e.g., login)
   const publicPages = ['/login'];
   const isPublicPage = publicPages.includes(pathname);
 

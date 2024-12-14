@@ -10,16 +10,21 @@ import {
 import OrganizationTable from '@/components/organization/OrganizationTable';
 import AddOrganizationDialog from '@/components/organization/AddOrganizationDialog';
 import EditOrganizationDialog from '@/components/organization/EditOrganizationDialog';
-import { Organization } from '@shared/types/organization';
 import AssignOwnerDialog from '@/components/organization/AssignOwnerDialog';
-import { assignOrganizationOwner } from '@shared/services/organizationService';
+import { Organization } from '@shared/types/organization';
 import { toast } from 'react-toastify';
+import {
+  assignOwnerRole,
+  removeOwnerRole,
+} from '@shared/services/organizationService';
+import { fetchUserByEmail } from '@shared/services/userService';
 
 const OrganizationPage = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
   const [assigning, setAssigning] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState<boolean>(false);
   const [showEditDialog, setShowEditDialog] = useState<boolean>(false);
   const [currentEditOrg, setCurrentEditOrg] = useState<Organization | null>(
@@ -76,23 +81,39 @@ const OrganizationPage = () => {
 
     setAssigning(true);
     try {
-      const status = await assignOrganizationOwner(selectedOrgId, email);
-
-      if (status === 'user-not-found') {
+      // Fetch user details by email
+      const user = await fetchUserByEmail(email);
+      if (!user) {
         toast.error('User with the given email does not exist.');
-      } else if (status === 'success') {
-        toast.success('Owner assigned successfully!');
-        loadOrganizations(); // Refresh organizations after successful assignment
+        return 'user-not-found';
       }
 
-      return status; //forward the status
-    } catch (err) {
-      console.error('Error assigning owner:', err);
-      toast.error('An unexpected error occurred. Please try again.');
-      return 'user-not-found'; // Fallback error case
+      // Assign the owner role
+      await assignOwnerRole(selectedOrgId, user.uid, email);
+      toast.success('Owner assigned successfully!');
+      await loadOrganizations();
+      return 'success';
+    } catch (error) {
+      console.error('Error assigning owner:', error);
+      toast.error(error.message || 'Failed to assign owner.');
+      return 'user-not-found';
     } finally {
       setAssigning(false);
-      setSelectedOrgId(null); // Close the dialog
+      setSelectedOrgId(null);
+    }
+  };
+
+  const handleRemoveOwner = async (organizationId: string, userId: string) => {
+    setRemoving(true);
+    try {
+      await removeOwnerRole(organizationId, userId);
+      toast.success('Owner removed successfully!');
+      await loadOrganizations();
+    } catch (error) {
+      console.error('Error removing owner:', error);
+      toast.error(error.message || 'Failed to remove owner.');
+    } finally {
+      setRemoving(false);
     }
   };
 
@@ -124,7 +145,8 @@ const OrganizationPage = () => {
         }}
         onDelete={handleDeleteOrganization}
         onAssignOwner={(orgId) => setSelectedOrgId(orgId)}
-        loading={loading}
+        onRemoveOwner={handleRemoveOwner}
+        loading={loading || removing}
       />
       <AssignOwnerDialog
         isOpen={!!selectedOrgId}
