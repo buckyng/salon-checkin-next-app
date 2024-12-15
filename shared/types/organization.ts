@@ -13,3 +13,14 @@ export interface OrganizationWithRoles {
   name: string;
   roles: string[];
 }
+
+export interface OrganizationUser {
+  userId: string;
+  roles: string[];
+  createdAt: Date;
+}
+
+export interface UserRole {
+  organizationId: string;
+  roles: string[];
+}
