@@ -8,7 +8,7 @@ import { UserProvider } from '@shared/contexts/UserContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { usePathname } from 'next/navigation';
-import { Home, Building, Settings } from 'lucide-react';
+import {  Building, Settings } from 'lucide-react';
 import { withAuth } from '@shared/components/hoc/withAuth';
 import { validateOwnerRole } from '@shared/services/organizationService';
 

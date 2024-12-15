@@ -16,7 +16,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signIn(email, password);
-      router.push('/dashboard');
+      router.push('/organizations');
     } catch (error: unknown) {
       console.error('Error signing in:', error);
       alert('Invalid email or password. Please try again.');
