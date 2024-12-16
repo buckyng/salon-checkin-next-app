@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { fetchOrganizationsByUser } from '@shared/services/organizationService';
 import { useAuth } from '@shared/contexts/UserContext';
+import { fetchOrganizationsByUser } from '@shared/services/organizationService';
+import { useRouter } from 'next/navigation';
 import { Button } from '@shared/components/ui/button';
-import { toast } from 'react-toastify';
 
 interface Organization {
   id: string;
@@ -13,58 +12,60 @@ interface Organization {
 }
 
 const OrganizationsPage = () => {
-  const { user } = useAuth(); // Retrieve logged-in user
-  const router = useRouter();
+  const { user, setSelectedOrganization } = useAuth();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
-    if (!user) return;
+    const fetchOrganizations = async () => {
+      if (!user) return;
 
-    const loadOrganizations = async () => {
       try {
-        const orgs = await fetchOrganizationsByUser(user.uid); // Fetch organizations for the user
+        setLoading(true);
+        const orgs = await fetchOrganizationsByUser(user.uid);
         setOrganizations(orgs);
       } catch (error) {
         console.error('Error fetching organizations:', error);
-        toast.error('Failed to load organizations.');
       } finally {
         setLoading(false);
       }
     };
 
-    loadOrganizations();
+    fetchOrganizations();
   }, [user]);
 
-  const handleSelectOrganization = (orgId: string) => {
-    router.push(`/organizations/${orgId}`);
+  const handleSelectOrganization = (organization: Organization) => {
+    setSelectedOrganization(organization); // Save in context
+    localStorage.setItem('selectedOrganizationId', organization.id); // Save in local storage
+    router.push(`/organizations/${organization.id}/`); // Navigate with organizationId in URL
   };
 
   if (loading) {
-    return <p className="text-center">Loading organizations...</p>;
+    return <div className="text-center">Loading organizations...</div>;
   }
 
   if (organizations.length === 0) {
     return (
-      <p className="text-center">You are not part of any organizations.</p>
+      <div className="text-center">You are not part of any organization.</div>
     );
   }
 
   return (
     <div className="container mx-auto mt-10">
-      <h1 className="mb-6 text-2xl font-bold">Your Organizations</h1>
-      <div className="grid gap-4">
+      <h1 className="mb-6 text-2xl font-bold">Select Organization</h1>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {organizations.map((org) => (
           <div
             key={org.id}
-            className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md"
+            className="p-4 transition-shadow border rounded shadow hover:shadow-md"
           >
-            <h2 className="text-lg font-bold">{org.name}</h2>
+            <h2 className="text-xl font-semibold">{org.name}</h2>
             <Button
-              variant="default"
-              onClick={() => handleSelectOrganization(org.id)}
+              className="w-full mt-4"
+              onClick={() => handleSelectOrganization(org)}
             >
-              Select
+              Go to {org.name}
             </Button>
           </div>
         ))}

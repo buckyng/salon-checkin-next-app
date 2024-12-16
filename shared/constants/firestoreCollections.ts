@@ -1,7 +1,7 @@
 export enum FirestoreCollections {
-    OrganizationUsers = 'OrganizationUsers',
-    AdminEmails = 'adminEmails',
-    Organizations = 'organizations',
-    Users = 'users',
-  }
-  
+  OrganizationUsers = 'OrganizationUsers',
+  AdminEmails = 'adminEmails',
+  Organizations = 'organizations',
+  Users = 'users',
+  Sales = 'sales',
+}
