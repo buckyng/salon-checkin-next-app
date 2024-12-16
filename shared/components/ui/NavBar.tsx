@@ -21,11 +21,15 @@ const NavBar = ({ userRole, homepagePath }: NavBarProps) => {
     router.push(path);
   };
 
+  const handleHomeNavigation = () => {
+    router.push(homepagePath); // Replace '/' with your Home Page route if different
+  };
+
   return (
     <nav className="fixed bottom-0 flex justify-around w-full py-3 text-white bg-gray-800">
       {!isHomePage && (
-        <button className="text-white" onClick={() => router.back()}>
-          Go Back
+        <button className="text-white" onClick={handleHomeNavigation}>
+          Home
         </button>
       )}
       <button

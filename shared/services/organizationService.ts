@@ -424,7 +424,7 @@ export const fetchSalesByOrganization = async (
 };
 
 // Fetch organization details by ID
-export const fetchOrganization = async (
+export const fetchOrganizationById = async (
   organizationId: string
 ): Promise<Organization | null> => {
   try {

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  fetchOrganization,
+  fetchOrganizationById,
   fetchUserRolesByOrganization,
 } from '@shared/services/organizationService';
 import { useAuth } from '@shared/contexts/UserContext';
@@ -44,7 +44,7 @@ const OrganizationDashboard = ({
 
     const loadOrganization = async () => {
       try {
-        const org = await fetchOrganization(organizationId); // Fetch organization details
+        const org = await fetchOrganizationById(organizationId); // Fetch organization details
         setOrganization(org);
       } catch (error) {
         console.error(error);

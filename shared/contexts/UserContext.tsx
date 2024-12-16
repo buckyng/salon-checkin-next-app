@@ -1,11 +1,17 @@
-// shared/contexts/UserContext.tsx
 import { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@shared/services/firebase';
 
+interface Organization {
+  id: string;
+  name: string;
+}
+
 interface UserContextProps {
   user: User | null;
   loading: boolean;
+  selectedOrganization: Organization | null;
+  setSelectedOrganization: (org: Organization) => void;
 }
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
@@ -13,6 +19,8 @@ const UserContext = createContext<UserContextProps | undefined>(undefined);
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<Organization | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -24,7 +32,14 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <UserContext.Provider value={{ user, loading }}>
+    <UserContext.Provider
+      value={{
+        user,
+        loading,
+        selectedOrganization,
+        setSelectedOrganization,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
