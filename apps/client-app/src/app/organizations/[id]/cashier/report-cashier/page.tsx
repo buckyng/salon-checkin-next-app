@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@shared/contexts/UserContext';
 import { fetchOrganizationSales } from '@shared/services/saleService';
 import { saveEndOfDayReport } from '@shared/services/reportService';
 import { Button } from '@shared/components/ui/button';
@@ -13,6 +12,8 @@ import { fetchUserRoles } from '@shared/services/organizationService';
 import { withAuth } from '@shared/components/hoc/withAuth';
 import { useOrganization } from '@/app/hooks/useOrganization';
 import { Label } from '@shared/components/ui/label';
+import { EmployeeSales, EmployeeSummary } from '@shared/types/report';
+import { fetchEmployeeNames } from '@shared/services/userService';
 
 const ReportCashierPage = ({
   params,
@@ -34,7 +35,9 @@ const ReportCashierPage = ({
   const [expenseNote, setExpenseNote] = useState('');
   const [totalSale, setTotalSale] = useState<number>(0);
   const [resultCheck, setResultCheck] = useState<number>(0);
-  const [employeeSummaries, setEmployeeSummaries] = useState([]);
+  const [employeeSummaries, setEmployeeSummaries] = useState<EmployeeSummary[]>(
+    []
+  );
 
   const [resultMessage, setResultMessage] = useState('');
 
@@ -47,8 +50,14 @@ const ReportCashierPage = ({
           date: currentDate,
         });
 
+        // Get unique employee IDs from sales
+        const employeeIds = [...new Set(sales.map((sale) => sale.employeeId))];
+
+        // Fetch employee names
+        const employeeNames = await fetchEmployeeNames(employeeIds);
+
         // Group sales by employee
-        const employeeMap: Record<string, any> = {};
+        const employeeMap: Record<string, EmployeeSales> = {};
         sales.forEach((sale) => {
           if (!employeeMap[sale.employeeId]) {
             employeeMap[sale.employeeId] = { total: 0, sales: [] };
@@ -59,6 +68,7 @@ const ReportCashierPage = ({
 
         const summaries = Object.keys(employeeMap).map((employeeId) => ({
           employeeId,
+          employeeName: employeeNames[employeeId] || 'Unknown',
           totalSale: employeeMap[employeeId].total,
           sales: employeeMap[employeeId].sales,
         }));
@@ -99,6 +109,8 @@ const ReportCashierPage = ({
   };
 
   const handleSubmit = async () => {
+    if (!organizationId) return;
+
     if (otherIncome && !incomeNote) {
       toast.error('Income note is required when other income has value.');
       return;

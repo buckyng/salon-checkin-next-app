@@ -14,7 +14,7 @@ export interface EndOfDayReport {
   expenseNote?: string;
   totalSale: number;
   employeeSummaries: EmployeeSummary[];
-  result: string; // Result message ('OK', 'Miss $XX', 'Double check over!')
+  result: number;
   createdAt: string; // ISO string for the submission time
 }
 
@@ -23,4 +23,9 @@ export interface EmployeeSummary {
   employeeName: string;
   totalSale: number;
   sales: SaleData[]; // Array of sales
+}
+
+export interface EmployeeSales {
+  total: number;
+  sales: SaleData[]; // Assuming SaleData is already defined
 }
