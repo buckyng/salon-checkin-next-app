@@ -202,21 +202,27 @@ const CashierPage = ({ params }: { params: { organizationId?: string } }) => {
     <div className="container mx-auto mt-6">
       <h1 className="text-2xl font-bold">Cashier - {organizationName}</h1>
       <p className="mb-4 text-gray-600">Date: {currentDate}</p>
-
-      <Button
-        onClick={() => {
-          if (organizationId) {
+      <div className="flex justify-between">
+        <Button
+          onClick={() => {
             router.push(
               `/organizations/${organizationId}/cashier/history-cashier`
             );
-          } else {
-            console.error('Organization ID is missing.');
-            router.push('/dashboard'); // Fallback to organizations list
-          }
-        }}
-      >
-        View History
-      </Button>
+          }}
+        >
+          View History
+        </Button>
+
+        <Button
+          onClick={() => {
+            router.push(
+              `/organizations/${organizationId}/cashier/report-cashier`
+            );
+          }}
+        >
+          End of Day
+        </Button>
+      </div>
 
       {/* Warning message for no sales */}
       {sales.length === 0 ? (

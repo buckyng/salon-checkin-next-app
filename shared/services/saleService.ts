@@ -23,7 +23,7 @@ interface FetchSalesParamsEmployee {
 interface FetchSalesParams {
   organizationId: string;
   date: string; // Local date in 'yyyy-MM-dd' format
-  paid: boolean;
+  paid?: boolean;
 }
 
 export const addSale = async (saleData: NewSaleData): Promise<void> => {
@@ -127,13 +127,18 @@ export const fetchOrganizationSales = async ({
   const utcEndOfDay = toZonedTime(localEndOfDay, timeZone);
 
   const salesCollection = collection(db, 'sales');
-  const salesQuery = query(
-    salesCollection,
+  const queryConditions = [
     where('organizationId', '==', organizationId),
     where('createdAt', '>=', utcStartOfDay.toISOString()),
     where('createdAt', '<=', utcEndOfDay.toISOString()),
-    ...(paid !== undefined ? [where('paid', '==', paid)] : [])
-  );
+  ];
+
+  // Include the "paid" filter conditionally if it exists
+  if (paid !== undefined) {
+    queryConditions.push(where('paid', '==', paid));
+  }
+
+  const salesQuery = query(salesCollection, ...queryConditions);
 
   const querySnapshot = await getDocs(salesQuery);
 
