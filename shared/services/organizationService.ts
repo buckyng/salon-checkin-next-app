@@ -1,7 +1,11 @@
 import { FirestoreCollections } from '@shared/constants/firestoreCollections';
 import { db } from '@shared/services/firebase';
-import { Organization, OrganizationUser } from '@shared/types/organization';
-import { UserRole, UserType } from '@shared/types/user';
+import {
+  Organization,
+  OrganizationUser,
+  UserRole,
+} from '@shared/types/organization';
+import { UserType } from '@shared/types/user';
 import {
   doc,
   updateDoc,
@@ -120,14 +124,18 @@ export const fetchOrganizationsByUser = async (
 };
 
 // Fetch all roles for a specific user across organizations
-export const fetchUserRoles = async (userId: string): Promise<UserRole[]> => {
+export const fetchUserRoles = async (
+  userId: string,
+  organizationId: string
+): Promise<UserRole[]> => {
   const orgUsersCollection = collection(
     db,
     FirestoreCollections.OrganizationUsers
   );
   const userRolesQuery = query(
     orgUsersCollection,
-    where('userId', '==', userId)
+    where('userId', '==', userId),
+    where('organizationId', '==', organizationId)
   );
   const snapshot = await getDocs(userRolesQuery);
 
@@ -137,10 +145,15 @@ export const fetchUserRoles = async (userId: string): Promise<UserRole[]> => {
   }));
 };
 
-export const validateOwnerRole = async (user: {
-  uid: string;
-}): Promise<boolean> => {
-  const roles = await fetchUserRoles(user.uid);
+export const validateOwnerRole = async (
+  user: { uid: string },
+  organizationId: string
+): Promise<boolean> => {
+  if (!organizationId) {
+    throw new Error('Organization ID is required to validate roles.');
+  }
+
+  const roles = await fetchUserRoles(user.uid, organizationId);
   return roles.some((role) => role.roles.includes('owner'));
 };
 
@@ -221,7 +234,9 @@ export const removeOwnerRole = async (
   }
 
   // Update the roles to remove the "Owner" role
-  const updatedRoles = existingData.roles.filter((role) => role !== 'owner');
+  const updatedRoles = existingData.roles.filter(
+    (role: string) => role !== 'owner'
+  );
 
   if (updatedRoles.length > 0) {
     // If the user still has other roles, update the document
@@ -239,22 +254,29 @@ export const removeOwnerRole = async (
 };
 
 // Validate if the user has any roles in organizations
-export const validateClientRole = async (user: {
-  uid: string;
-}): Promise<boolean> => {
+export const validateClientRole = async (
+  user: {
+    uid: string;
+  },
+  organizationId: string
+): Promise<boolean> => {
   try {
+    // Reference the OrganizationUsers collection
     const orgUsersCollection = collection(
       db,
       FirestoreCollections.OrganizationUsers
     );
+
+    // Query for roles matching the userId and organizationId
     const orgUsersQuery = query(
       orgUsersCollection,
-      where('userId', '==', user.uid)
+      where('userId', '==', user.uid),
+      where('organizationId', '==', organizationId)
     );
 
     const snapshot = await getDocs(orgUsersQuery);
 
-    // Check if the user has any roles
+    // Check if the user has any roles within the specified organization
     return !snapshot.empty;
   } catch (error) {
     console.error('Error validating client roles:', error);
@@ -432,9 +454,15 @@ export const fetchOrganizationById = async (
     const orgDoc = await getDoc(orgDocRef);
 
     if (orgDoc.exists()) {
+      let data = orgDoc.data();
       return {
         id: orgDoc.id,
-        name: orgDoc.data()?.name || 'Unnamed Organization',
+        name: data.name || 'Unnamed Organization',
+        createdAt: data.createdAt.toDate() || new Date(), // Handle Firestore timestamp
+        owner: {
+          uid: data.owner?.uid || 'unknown',
+          email: data.owner?.email || 'unknown@domain.com',
+        },
       };
     } else {
       console.warn(`Organization with ID ${organizationId} not found.`);
@@ -449,27 +477,48 @@ export const fetchOrganizationById = async (
 export const fetchUserRolesByOrganization = async (
   userId: string,
   organizationId: string
-): Promise<UserRole | null> => {
-  const orgUsersCollection = collection(
-    db,
-    FirestoreCollections.OrganizationUsers
-  );
-  const orgUsersQuery = query(
-    orgUsersCollection,
-    where('userId', '==', userId),
-    where('organizationId', '==', organizationId)
-  );
+): Promise<UserRole[]> => {
+  try {
+    const orgUsersCollection = collection(db, 'OrganizationUsers');
+    const rolesQuery = query(
+      orgUsersCollection,
+      where('userId', '==', userId),
+      where('organizationId', '==', organizationId)
+    );
 
-  const snapshot = await getDocs(orgUsersQuery);
+    const snapshot = await getDocs(rolesQuery);
 
-  if (snapshot.empty) {
-    return null; // User does not belong to this organization
+    if (snapshot.empty) {
+      return []; // Return an empty array if no roles are found
+    }
+
+    return snapshot.docs.map((doc) => doc.data() as UserRole);
+  } catch (error) {
+    console.error('Error fetching user roles by organization:', error);
+    return []; // Fallback to an empty array on error
   }
+};
 
-  const data = snapshot.docs[0].data();
+// Fetch all organizations from Firestore
+export const fetchOrganizations = async (): Promise<Organization[]> => {
+  try {
+    const organizationsCollection = collection(db, 'organizations'); // Adjust collection name if different
+    const querySnapshot = await getDocs(organizationsCollection);
 
-  return {
-    organizationId: data.organizationId,
-    roles: data.roles || [],
-  };
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id, // Firestore document ID
+        name: data.name, // Organization name field in Firestore
+        createdAt: data.createdAt?.toDate() || new Date(), // Handle Firestore timestamp
+        owner: {
+          uid: data.owner?.uid || 'unknown',
+          email: data.owner?.email || 'unknown@domain.com',
+        },
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching organizations:', error);
+    throw new Error('Failed to fetch organizations.');
+  }
 };

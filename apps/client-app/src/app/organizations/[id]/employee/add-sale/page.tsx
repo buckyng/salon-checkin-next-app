@@ -5,21 +5,34 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@shared/contexts/UserContext';
 import { addSale } from '@shared/services/saleService';
 import { toast } from 'react-toastify';
+import { withAuth } from '@shared/components/hoc/withAuth';
+import { fetchUserRoles } from '@shared/services/organizationService';
 
 const AddSalePage = ({ params }: { params: { organizationId?: string } }) => {
-  const { user, selectedOrganization } = useAuth();
-  const organizationId = params.organizationId || selectedOrganization?.id; // Use route or context
+  const { user } = useAuth();
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [comboNum, setComboNum] = useState('');
   const [note, setNote] = useState('');
   const router = useRouter();
 
+  // Fetch organizationId dynamically
   useEffect(() => {
-    if (!organizationId) {
-      toast.error('Organization ID is missing.');
-      router.push('/organizations'); // Redirect to organizations page if ID is missing
+    let orgId = params.organizationId;
+
+    if (!orgId) {
+      const storedOrgId = localStorage.getItem('selectedOrganizationId');
+      if (storedOrgId) {
+        orgId = storedOrgId;
+      } else {
+        toast.error('Organization ID is missing.');
+        router.push('/dashboard'); // Redirect if no orgId
+        return;
+      }
     }
-  }, [organizationId, router]);
+
+    setOrganizationId(orgId);
+  }, [params.organizationId, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,6 +65,14 @@ const AddSalePage = ({ params }: { params: { organizationId?: string } }) => {
       toast.error('Failed to add sale. Please try again.');
     }
   };
+
+  if (!organizationId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto mt-4">
@@ -103,4 +124,17 @@ const AddSalePage = ({ params }: { params: { organizationId?: string } }) => {
   );
 };
 
-export default AddSalePage;
+// Validate employee role function
+const validateEmployeeRole = async (
+  user: { uid: string },
+  organizationId: string
+) => {
+  const roles = await fetchUserRoles(user.uid, organizationId);
+  return roles.map((role) => role.roles).flat();
+};
+
+// Wrap with role validation
+export default withAuth(AddSalePage, {
+  allowedRoles: ['employee'],
+  validateRole: validateEmployeeRole,
+});
