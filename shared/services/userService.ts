@@ -94,3 +94,29 @@ export const fetchUserProfile = async (userId: string): Promise<UserType> => {
     throw new Error('Failed to fetch user profile.');
   }
 };
+
+// Fetch employee names based on an array of employee IDs
+export const fetchEmployeeNames = async (
+  employeeIds: string[]
+): Promise<Record<string, string>> => {
+  if (!employeeIds.length) return {};
+
+  try {
+    const usersCollection = collection(db, 'users');
+    const userQuery = query(
+      usersCollection,
+      where('__name__', 'in', employeeIds)
+    );
+
+    const userSnapshots = await getDocs(userQuery);
+
+    // Map employee IDs to their display names
+    return userSnapshots.docs.reduce<Record<string, string>>((acc, doc) => {
+      acc[doc.id] = doc.data().displayName || 'Unknown';
+      return acc;
+    }, {});
+  } catch (error) {
+    console.error('Error fetching employee names:', error);
+    return {};
+  }
+};

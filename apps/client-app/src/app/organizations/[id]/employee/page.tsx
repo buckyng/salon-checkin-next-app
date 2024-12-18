@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@shared/contexts/UserContext';
 import { fetchOrganizationById } from '@shared/services/organizationService';
-import { fetchOrganizationSales } from '@shared/services/saleService';
+import { fetchOrganizationSalesOfEmployee } from '@shared/services/saleService';
 import { DataTable } from '@shared/components/ui/data-table';
 import { toZonedTime, format as tzFormat } from 'date-fns-tz';
 import { Button } from '@shared/components/ui/button';
@@ -49,6 +49,11 @@ const EmployeeHomePage = ({
       header: 'Amount',
       accessorKey: 'amount',
       cell: ({ getValue }) => `$${getValue<number>().toFixed(2)}`,
+    },
+    {
+      header: 'Combo',
+      accessorKey: 'comboNum',
+      cell: ({ getValue }) => getValue() || '',
     },
     {
       header: 'Note',
@@ -97,7 +102,7 @@ const EmployeeHomePage = ({
 
     const fetchSales = async () => {
       try {
-        const salesData = await fetchOrganizationSales({
+        const salesData = await fetchOrganizationSalesOfEmployee({
           organizationId,
           employeeId: user.uid,
           date: currentDate,
