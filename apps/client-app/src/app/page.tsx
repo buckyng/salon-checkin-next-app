@@ -7,7 +7,7 @@ const HomePage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/organizations'); // Redirect authenticated users to the dashboard
+    router.replace('/dashboard'); // Redirect authenticated users to the dashboard
   }, [router]);
 
   return (

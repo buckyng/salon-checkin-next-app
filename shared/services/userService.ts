@@ -12,6 +12,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { uploadFile } from './storageService';
 import { updateProfile } from 'firebase/auth';
 import { FirestoreCollections } from '@shared/constants/firestoreCollections';
+import { UserType } from '@shared/types/user';
 
 export const fetchUserByEmail = async (
   email: string
@@ -77,18 +78,16 @@ export const updateUserProfile = async ({
 /**
  * Fetch user profile data from Firestore.
  */
-export const fetchUserProfile = async (
-  userId: string
-): Promise<{ photoURL?: string }> => {
+export const fetchUserProfile = async (userId: string): Promise<UserType> => {
   try {
     const userDocRef = doc(db, FirestoreCollections.Users, userId);
     const snapshot = await getDoc(userDocRef);
 
     if (snapshot.exists()) {
-      return snapshot.data() as { photoURL?: string };
+      return snapshot.data() as UserType;
     } else {
       console.info('No user data found in Firestore.');
-      return {};
+      return {} as UserType;
     }
   } catch (error) {
     console.error('Error fetching user profile:', error);

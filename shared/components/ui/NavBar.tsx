@@ -1,78 +1,76 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserRole } from '@shared/types/organization';
-import { usePathname } from 'next/navigation';
+import { fetchUserRoles } from '@shared/services/organizationService';
 
 interface NavBarProps {
-  userRole?: UserRole | null;
-  homepagePath: string; // Dynamic homepage path
+  homepagePath: string; // Path to the homepage (e.g., organizations page)
+  organizationId?: string; // Current organization ID
 }
 
-const NavBar = ({ userRole, homepagePath }: NavBarProps) => {
+export const NavBar: React.FC<NavBarProps> = ({
+  homepagePath,
+  organizationId,
+}) => {
   const router = useRouter();
-  const pathname = usePathname();
+  const [roles, setRoles] = useState<string[]>([]);
 
-  // Dynamically determine if the user is on the homepage
-  const isHomePage = pathname === homepagePath;
+  // Fetch roles dynamically when organizationId changes
+  useEffect(() => {
+    const fetchRoles = async () => {
+      if (organizationId) {
+        try {
+          const userId = localStorage.getItem('userId'); // Replace with your auth context or state
+          if (userId) {
+            const userRoles = await fetchUserRoles(userId, organizationId);
+            setRoles(userRoles.map((role) => role.roles).flat());
+          }
+        } catch (error) {
+          console.error('Error fetching roles:', error);
+        }
+      } else {
+        setRoles([]); // Clear roles if no organization is selected
+      }
+    };
+
+    fetchRoles();
+  }, [organizationId]);
 
   const handleNavigation = (path: string) => {
     router.push(path);
   };
 
-  const handleHomeNavigation = () => {
-    router.push(homepagePath); // Replace '/' with your Home Page route if different
-  };
-
   return (
-    <nav className="fixed bottom-0 flex justify-around w-full py-3 text-white bg-gray-800">
-      {!isHomePage && (
-        <button className="text-white" onClick={handleHomeNavigation}>
-          Home
-        </button>
-      )}
-      <button
-        className="text-white"
-        onClick={() => handleNavigation('/settings')}
-      >
-        Settings
-      </button>
+    <nav className="fixed bottom-0 left-0 right-0 flex justify-between p-4 text-white bg-blue-500">
+      {/* Home Button */}
+      <button onClick={() => handleNavigation(homepagePath)}>Home</button>
 
-      {/* Display organization-specific roles if the userRole exists */}
-      {userRole && (
+      {/* Dynamic Role-Based Buttons */}
+      {organizationId && (
         <>
-          {userRole.roles.includes('employee') && (
+          {roles.includes('employee') && (
             <button
-              className="text-white"
               onClick={() =>
-                handleNavigation(
-                  `/organizations/${userRole.organizationId}/employee`
-                )
+                handleNavigation(`/organizations/${organizationId}/employee`)
               }
             >
               Employee
             </button>
           )}
-          {userRole.roles.includes('manager') && (
+          {roles.includes('manager') && (
             <button
-              className="text-white"
               onClick={() =>
-                handleNavigation(
-                  `/organizations/${userRole.organizationId}/manager`
-                )
+                handleNavigation(`/organizations/${organizationId}/manager`)
               }
             >
               Manager
             </button>
           )}
-          {userRole.roles.includes('cashier') && (
+          {roles.includes('cashier') && (
             <button
-              className="text-white"
               onClick={() =>
-                handleNavigation(
-                  `/organizations/${userRole.organizationId}/cashier`
-                )
+                handleNavigation(`/organizations/${organizationId}/cashier`)
               }
             >
               Cashier
@@ -80,8 +78,9 @@ const NavBar = ({ userRole, homepagePath }: NavBarProps) => {
           )}
         </>
       )}
+
+      {/* Settings */}
+      <button onClick={() => handleNavigation('/settings')}>Settings</button>
     </nav>
   );
 };
-
-export default NavBar;

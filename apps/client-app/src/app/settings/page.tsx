@@ -17,13 +17,9 @@ import { logout } from '@shared/services/authService';
 
 const SettingsPage = () => {
   const { user } = useAuth();
-  const [firstName, setFirstName] = useState(
-    user?.displayName?.split(' ')[0] || ''
-  );
-  const [lastName, setLastName] = useState(
-    user?.displayName?.split(' ')[1] || ''
-  );
-  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [firstName, setFirstName] = useState<string>('');
+  const [lastName, setLastName] = useState<string>('');
+  const [profilePhoto, setProfilePhoto] = useState<File | undefined>(undefined);
   const [photoURL, setPhotoURL] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,6 +34,9 @@ const SettingsPage = () => {
         } else {
           console.info('No profile photo found for this user.');
         }
+
+        setFirstName(userData.firstName || '');
+        setLastName(userData.lastName || '');
       } catch (error) {
         console.error('Error fetching profile photo:', error);
       }
@@ -112,7 +111,7 @@ const SettingsPage = () => {
             type="file"
             accept="image/*"
             className="w-full px-4 py-2 border rounded"
-            onChange={(e) => setProfilePhoto(e.target.files?.[0] || null)}
+            onChange={(e) => setProfilePhoto(e.target.files?.[0] || undefined)}
           />
         </div>
 

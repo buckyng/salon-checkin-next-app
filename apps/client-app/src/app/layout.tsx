@@ -2,13 +2,16 @@
 
 import localFont from 'next/font/local';
 import '@shared/styles/global.css';
-import { UserProvider } from '@shared/contexts/UserContext';
-import { withAuth } from '@shared/components/hoc/withAuth';
+import { UserProvider, useAuth } from '@shared/contexts/UserContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { validateClientRole } from '@shared/services/organizationService';
-import NavBar from '@shared/components/ui/NavBar';
+import { SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar';
+import { AppSidebar } from '@shared/components/ui/app-sidebar';
 import { usePathname } from 'next/navigation';
+import { Building, Settings, BarChart, Menu } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { fetchUserRolesByOrganization } from '@shared/services/organizationService';
+import { sidebarAccess } from './configs/sidebarConfig';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -21,15 +24,47 @@ const geistMono = localFont({
   weight: '100 900',
 });
 
-const ProtectedLayout = withAuth(
-  ({ children }: { children: React.ReactNode }) => (
-    <>
-      <main className="pb-16">{children}</main>
-      <NavBar homepagePath="/organizations" />
-    </>
-  ),
-  { validateRole: validateClientRole }
-);
+// Sidebar items with access control
+const sidebarItems = [
+  { title: 'Dashboard', url: '/dashboard', icon: Building, key: 'dashboard' },
+  { title: 'Reports', url: '/reports', icon: BarChart, key: 'reports' },
+  { title: 'Settings', url: '/settings', icon: Settings, key: 'settings' },
+];
+
+const SidebarWithAccess = () => {
+  const { user } = useAuth();
+  const [filteredItems, setFilteredItems] = useState(sidebarItems);
+
+  useEffect(() => {
+    const filterItems = async () => {
+      if (!user?.uid) return;
+
+      const organizationId = localStorage.getItem('selectedOrganizationId');
+      if (!organizationId) return;
+
+      try {
+        const userRoles = await fetchUserRolesByOrganization(
+          user.uid,
+          organizationId
+        );
+        const roles = userRoles.map((role) => role.roles).flat();
+
+        const allowedItems = sidebarItems.filter((item) => {
+          const allowedRoles = sidebarAccess[item.key];
+          return allowedRoles?.some((role) => roles.includes(role));
+        });
+
+        setFilteredItems(allowedItems);
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+      }
+    };
+
+    filterItems();
+  }, [user]);
+
+  return <AppSidebar items={filteredItems} />;
+};
 
 export default function RootLayout({
   children,
@@ -37,8 +72,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-
-  // Public pages (e.g., login)
   const publicPages = ['/login', '/signup'];
   const isPublicPage = publicPages.includes(pathname);
 
@@ -49,11 +82,31 @@ export default function RootLayout({
       >
         <UserProvider>
           {isPublicPage ? (
+            // Public pages
             <main>{children}</main>
           ) : (
-            <ProtectedLayout>{children}</ProtectedLayout>
+            <SidebarProvider>
+              <div className="flex flex-col min-h-screen">
+                {/* Header for Mobile */}
+                <header className="flex items-center justify-between p-4 text-white bg-blue-500 md:hidden">
+                  <SidebarTrigger>
+                    <Menu className="w-6 h-6" />
+                  </SidebarTrigger>
+                </header>
+
+                {/* Sidebar & Content */}
+                <div className="flex flex-1">
+                  {/* Sidebar (Mobile slide-in and Desktop fixed) */}
+                  <div className="hidden md:block">
+                    <SidebarWithAccess />
+                  </div>
+
+                  {/* Main Content */}
+                  <main className="flex-1 p-4">{children}</main>
+                </div>
+              </div>
+            </SidebarProvider>
           )}
-          {/* ToastContainer to show toast notifications */}
           <ToastContainer position="top-right" autoClose={3000} />
         </UserProvider>
       </body>

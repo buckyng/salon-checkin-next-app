@@ -1,18 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@shared/contexts/UserContext'; // Import your authentication context
 import {
   fetchUsersByOrganization,
   addUserToOrganization,
   updateUserRoles,
   removeUserFromOrganization,
+  fetchUserRolesByOrganization,
 } from '@shared/services/organizationService';
 import { Button } from '@shared/components/ui/button';
 import { Input } from '@shared/components/ui/input';
 import { Checkbox } from '@shared/components/ui/checkbox';
 import { toast } from 'react-toastify';
+import { withAuth } from '@shared/components/hoc/withAuth';
 
 interface OrganizationUser {
   userId: string;
@@ -24,22 +26,34 @@ interface OrganizationUser {
 
 const ManageUsersPage = () => {
   const params = useParams();
+  const router = useRouter();
   const { user } = useAuth(); // Use authenticated user context to get `ownerId`
-  const organizationId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const [organizationId, setOrganizationId] = useState<string>('');
 
   const [users, setUsers] = useState<OrganizationUser[]>([]);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [updatingUser, setUpdatingUser] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!organizationId || !user) return;
+    let orgId = params?.id as string;
+
+    if (!orgId) {
+      const storedOrgId = localStorage.getItem('selectedOrganizationId');
+      if (storedOrgId) {
+        orgId = storedOrgId;
+        router.push(`/organizations/${orgId}/manage-users`); // Update the URL
+      } else {
+        router.push('/dashboard'); // Redirect to dashboard
+        return;
+      }
+    }
+
+    setOrganizationId(orgId);
 
     const loadUsers = async () => {
       try {
-        const orgUsers = await fetchUsersByOrganization(
-          organizationId,
-          user.uid
-        ); // Pass `ownerId` here
+        if (!user?.uid || !orgId) return;
+        const orgUsers = await fetchUsersByOrganization(orgId, user.uid);
         setUsers(orgUsers);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -48,7 +62,7 @@ const ManageUsersPage = () => {
     };
 
     loadUsers();
-  }, [organizationId, user]);
+  }, [params, router, user]);
 
   const handleAddUser = async () => {
     if (!newUserEmail.trim()) {
@@ -175,4 +189,17 @@ const ManageUsersPage = () => {
   );
 };
 
-export default ManageUsersPage;
+// Role Validation Function for Owners
+const validateOwnerRole = async (
+  user: { uid: string },
+  organizationId: string
+) => {
+  const roles = await fetchUserRolesByOrganization(user.uid, organizationId);
+  return roles.map((role) => role.roles).flat();
+};
+
+// Protect the Page for Owners Only
+export default withAuth(ManageUsersPage, {
+  allowedRoles: ['owner'],
+  validateRole: validateOwnerRole,
+});
