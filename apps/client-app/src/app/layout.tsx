@@ -37,8 +37,10 @@ const SidebarWithAccess = () => {
 
   useEffect(() => {
     const filterItems = async () => {
-      if (!user?.uid) return;
-
+      if (!user?.uid) {
+        setFilteredItems([]);
+        return;
+      }
       const organizationId = localStorage.getItem('selectedOrganizationId');
       if (!organizationId) return;
 
