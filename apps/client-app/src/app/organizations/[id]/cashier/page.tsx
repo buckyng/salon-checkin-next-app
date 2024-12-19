@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import {
   fetchOrganizationSales,
   updateSale,
@@ -15,6 +15,7 @@ import { useOrganization } from '@/app/hooks/useOrganization';
 import { useRouter } from 'next/navigation';
 import { fetchUserRoles } from '@shared/services/organizationService';
 import { withAuth } from '@shared/components/hoc/withAuth';
+import { ColumnDef } from '@tanstack/react-table';
 
 interface GroupedSale {
   comboNum?: number | null;
@@ -22,9 +23,13 @@ interface GroupedSale {
   totalAmount: number;
 }
 
-const CashierPage = ({ params }: { params: { organizationId?: string } }) => {
+interface PageProps {
+  params: Promise<{ organizationId: string }>;
+}
+
+const CashierPage = ({ params }: PageProps) => {
   const { organizationId, organizationName, loading } = useOrganization(
-    params.organizationId
+    use(params).organizationId
   );
   const [sales, setSales] = useState<GroupedSale[]>([]);
   const currentDate = format(new Date(), 'yyyy-MM-dd');
@@ -158,13 +163,13 @@ const CashierPage = ({ params }: { params: { organizationId?: string } }) => {
     }
   };
 
-  const columns = [
+  const columns: ColumnDef<SaleData>[] = [
     {
       header: 'Time',
       accessorKey: 'createdAt',
-      cell: ({ getValue }) => {
+      cell: ({ row }) => {
         const localTime = toZonedTime(
-          parseISO(getValue<string>()),
+          parseISO(row.getValue('createdAt')),
           Intl.DateTimeFormat().resolvedOptions().timeZone
         );
         return tzFormat(localTime, 'HH:mm:ss');

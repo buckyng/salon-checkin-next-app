@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@shared/contexts/UserContext';
 import {
@@ -29,6 +29,24 @@ const DashboardPage = () => {
   const [roles, setRoles] = useState<string[]>([]);
   const [activeRole, setActiveRole] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  // Fetch roles when the organization changes
+  const fetchRolesForOrganization = useCallback(
+    async (orgId: string) => {
+      if (!user?.uid) return;
+
+      try {
+        const userRoles = await fetchUserRolesByOrganization(user.uid, orgId);
+        const flattenedRoles = userRoles.map((role) => role.roles).flat();
+
+        setRoles(flattenedRoles);
+        setActiveRole(flattenedRoles[0] || null); // Default to first role
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+      }
+    },
+    [user?.uid]
+  );
 
   // Load organizations and select the first one if needed
   useEffect(() => {
@@ -60,22 +78,7 @@ const DashboardPage = () => {
     };
 
     fetchUserOrganizations();
-  }, [user?.uid]);
-
-  // Fetch roles when the organization changes
-  const fetchRolesForOrganization = async (orgId: string) => {
-    if (!user?.uid) return;
-
-    try {
-      const userRoles = await fetchUserRolesByOrganization(user.uid, orgId);
-      const flattenedRoles = userRoles.map((role) => role.roles).flat();
-
-      setRoles(flattenedRoles);
-      setActiveRole(flattenedRoles[0] || null); // Default to first role
-    } catch (error) {
-      console.error('Error fetching roles:', error);
-    }
-  };
+  }, [user?.uid, fetchRolesForOrganization]);
 
   const handleOrganizationSelect = (org: Organization) => {
     setSelectedOrganization(org);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchOrganizationSales } from '@shared/services/saleService';
 import { saveEndOfDayReport } from '@shared/services/reportService';
@@ -15,13 +15,13 @@ import { Label } from '@shared/components/ui/label';
 import { EmployeeSales, EmployeeSummary } from '@shared/types/report';
 import { fetchEmployeeNames } from '@shared/services/userService';
 
-const ReportCashierPage = ({
-  params,
-}: {
-  params: { organizationId: string };
-}) => {
+interface PageProps {
+  params: Promise<{ organizationId: string }>;
+}
+
+const ReportCashierPage = ({ params }: PageProps) => {
   const router = useRouter();
-  const { organizationId } = useOrganization(params.organizationId);
+  const { organizationId } = useOrganization(use(params).organizationId);
   const currentDate = format(new Date(), 'yyyy-MM-dd');
 
   const [cash, setCash] = useState('');

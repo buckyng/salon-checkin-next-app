@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import {
   fetchOrganizationSales,
   updateSale,
@@ -15,14 +15,15 @@ import { useOrganization } from '@/app/hooks/useOrganization';
 import { useRouter } from 'next/navigation';
 import { fetchUserRoles } from '@shared/services/organizationService';
 import { withAuth } from '@shared/components/hoc/withAuth';
+import { ColumnDef } from '@tanstack/react-table';
 
-const HistoryCashierPage = ({
-  params,
-}: {
-  params: { organizationId?: string };
-}) => {
+interface PageProps {
+  params: Promise<{ organizationId: string }>;
+}
+
+const HistoryCashierPage = ({ params }: PageProps) => {
   const { organizationId, organizationName, loading } = useOrganization(
-    params.organizationId
+    use(params).organizationId
   );
   const [sales, setSales] = useState<SaleData[]>([]);
   const currentDate = format(new Date(), 'yyyy-MM-dd');
@@ -58,13 +59,13 @@ const HistoryCashierPage = ({
     }
   };
 
-  const columns = [
+  const columns: ColumnDef<SaleData>[] = [
     {
       header: 'Time',
-      accessorKey: 'createdAt',
-      cell: ({ getValue }) => {
+      accessorKey: 'createdAt', // Ensure this matches the key in SaleData
+      cell: ({ row }) => {
         const localTime = toZonedTime(
-          parseISO(getValue<string>()),
+          parseISO(row.getValue('createdAt')),
           Intl.DateTimeFormat().resolvedOptions().timeZone
         );
         return tzFormat(localTime, 'HH:mm:ss');
@@ -74,16 +75,16 @@ const HistoryCashierPage = ({
     {
       header: 'Amount',
       accessorKey: 'amount',
-      cell: ({ getValue }) => `$${getValue<number>().toFixed(2)}`,
+      cell: ({ row }) => `$${row.getValue<number>('amount').toFixed(2)}`,
     },
     {
       header: 'Combo',
       accessorKey: 'comboNum',
-      cell: ({ getValue }) => `${getValue<number>() || ''}`,
+      cell: ({ row }) => `${row.getValue<number>('comboNum') || ''}`,
     },
     {
       header: 'Actions',
-      accessorKey: 'id',
+      accessorKey: 'id', // This matches `SaleData.id`
       cell: ({ row }) => (
         <Button onClick={() => handleMarkUnpaid(row.original.id)}>
           Mark Unpaid

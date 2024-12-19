@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@shared/contexts/UserContext';
-import { fetchOrganizationById } from '@shared/services/organizationService';
 import { fetchOrganizationSalesOfEmployee } from '@shared/services/saleService';
 import { DataTable } from '@shared/components/ui/data-table';
 import { toZonedTime, format as tzFormat } from 'date-fns-tz';
@@ -13,18 +12,19 @@ import { format } from 'date-fns';
 import { SaleData } from '@shared/types/transaction';
 import { fetchUserRoles } from '@shared/services/organizationService';
 import { withAuth } from '@shared/components/hoc/withAuth';
+import { useOrganization } from '@/app/hooks/useOrganization';
 
-const EmployeeHomePage = ({
-  params,
-}: {
-  params: { organizationId: string };
-}) => {
+interface PageProps {
+  params: Promise<{ organizationId: string }>;
+}
+
+const EmployeeHomePage = ({ params }: PageProps) => {
   const { user } = useAuth();
-  const { organizationId: paramOrgId } = params;
+  const { organizationId, organizationName } = useOrganization(
+    use(params).organizationId
+  );
   const router = useRouter();
 
-  const [organizationId, setOrganizationId] = useState<string | null>(null);
-  const [organizationName, setOrganizationName] = useState<string>(''); // New state for organization name
   const [sales, setSales] = useState<SaleData[]>([]);
   const [totalSales, setTotalSales] = useState<number>(0);
 
@@ -61,40 +61,6 @@ const EmployeeHomePage = ({
       cell: ({ getValue }) => getValue() || '',
     },
   ];
-
-  // Ensure organizationId is defined
-  useEffect(() => {
-    let orgId = paramOrgId;
-
-    if (!orgId) {
-      const storedOrgId = localStorage.getItem('selectedOrganizationId');
-      if (storedOrgId) {
-        orgId = storedOrgId;
-        router.push(`/organizations/${orgId}/employee`);
-      } else {
-        router.push('/organizations');
-        return;
-      }
-    }
-
-    setOrganizationId(orgId);
-  }, [paramOrgId, router]);
-
-  // Fetch organization name
-  useEffect(() => {
-    if (!organizationId) return;
-
-    const loadOrganizationName = async () => {
-      try {
-        const organization = await fetchOrganizationById(organizationId);
-        if (organization) setOrganizationName(organization.name);
-      } catch (error) {
-        console.error('Error fetching organization name:', error);
-      }
-    };
-
-    loadOrganizationName();
-  }, [organizationId]);
 
   // Fetch sales data
   useEffect(() => {

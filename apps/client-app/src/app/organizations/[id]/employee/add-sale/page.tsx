@@ -1,38 +1,26 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@shared/contexts/UserContext';
 import { addSale } from '@shared/services/saleService';
 import { toast } from 'react-toastify';
 import { withAuth } from '@shared/components/hoc/withAuth';
 import { fetchUserRoles } from '@shared/services/organizationService';
+import { useOrganization } from '@/app/hooks/useOrganization';
 
-const AddSalePage = ({ params }: { params: { organizationId?: string } }) => {
+interface PageProps {
+  params: Promise<{ organizationId: string }>;
+}
+
+const AddSalePage = ({ params }: PageProps) => {
   const { user } = useAuth();
-  const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [comboNum, setComboNum] = useState('');
   const [note, setNote] = useState('');
   const router = useRouter();
 
-  // Fetch organizationId dynamically
-  useEffect(() => {
-    let orgId = params.organizationId;
-
-    if (!orgId) {
-      const storedOrgId = localStorage.getItem('selectedOrganizationId');
-      if (storedOrgId) {
-        orgId = storedOrgId;
-      } else {
-        toast.error('Organization ID is missing.');
-        router.push('/dashboard'); // Redirect if no orgId
-        return;
-      }
-    }
-
-    setOrganizationId(orgId);
-  }, [params.organizationId, router]);
+  const { organizationId } = useOrganization(use(params).organizationId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
