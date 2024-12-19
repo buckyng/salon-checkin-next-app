@@ -1,4 +1,6 @@
-export const metadata = {
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
   title: 'Salon Check-In App',
   description: 'A professional salon check-in app for employees and customers.',
   themeColor: '#000000',
