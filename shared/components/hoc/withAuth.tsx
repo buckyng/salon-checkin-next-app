@@ -9,7 +9,8 @@ export const withAuth = <P extends object>(
   {
     redirectTo = '/login',
     validateRole,
-    allowedRoles, // New: Array of allowed roles
+    allowedRoles, //Array of allowed roles
+    excludeOrgCheck = false, //Option to skip organizationId check
   }: {
     redirectTo?: string;
     validateRole?: (
@@ -17,6 +18,7 @@ export const withAuth = <P extends object>(
       organizationId: string
     ) => Promise<string[]>;
     allowedRoles?: string[]; // Array of roles that can access the page
+    excludeOrgCheck?: boolean;
   } = {}
 ) => {
   return (props: P) => {
@@ -34,15 +36,19 @@ export const withAuth = <P extends object>(
           return;
         }
 
-        const organizationId = localStorage.getItem('selectedOrganizationId');
-        if (!organizationId) {
-          router.replace('/dashboard'); // Redirect to dashboard if no org selected
-          return;
+        if (!excludeOrgCheck) {
+          const organizationId = localStorage.getItem('selectedOrganizationId');
+          if (!organizationId) {
+            router.replace('/dashboard'); // Redirect to dashboard if no org selected
+            return;
+          }
         }
 
         try {
           // Validate roles dynamically
           if (allowedRoles && validateRole) {
+            const organizationId =
+              localStorage.getItem('selectedOrganizationId') || '';
             const userRoles = await validateRole(user, organizationId);
 
             // Check if any role matches the allowed roles

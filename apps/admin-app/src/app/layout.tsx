@@ -5,12 +5,10 @@ import '@shared/styles/global.css';
 import { UserProvider } from '@shared/contexts/UserContext';
 import { SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar';
 import { AppSidebar } from '@shared/components/ui/app-sidebar';
-import { Home, Building, User as UserIcon, Settings } from 'lucide-react';
-import { withAuth } from '@shared/components/hoc/withAuth';
+import { Home, Building, User as UserIcon, Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { validateAdminRole } from '@shared/services/adminService';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -40,25 +38,7 @@ const sidebarItems = [
     url: '/user',
     icon: UserIcon,
   },
-  {
-    title: 'Settings',
-    url: '/settings',
-    icon: Settings,
-  },
 ];
-
-const ProtectedLayout = withAuth(
-  ({ children }: { children: React.ReactNode }) => (
-    <SidebarProvider>
-      <AppSidebar items={sidebarItems} />
-      <main>
-        <SidebarTrigger />
-        {children}
-      </main>
-    </SidebarProvider>
-  ),
-  { validateRole: validateAdminRole }
-);
 
 export default function RootLayout({
   children,
@@ -78,11 +58,31 @@ export default function RootLayout({
       >
         <UserProvider>
           {isPublicPage ? (
+            // Public pages
             <main>{children}</main>
           ) : (
-            <ProtectedLayout>{children}</ProtectedLayout>
+            <SidebarProvider>
+              <div className="flex flex-col min-h-screen">
+                {/* Header for Mobile */}
+                <header className="flex items-center justify-between p-4 text-white bg-blue-500 md:hidden">
+                  <SidebarTrigger>
+                    <Menu className="w-6 h-6" />
+                  </SidebarTrigger>
+                </header>
+
+                {/* Sidebar & Content */}
+                <div className="flex flex-1">
+                  {/* Sidebar (Mobile slide-in and Desktop fixed) */}
+                  <div className="hidden md:block">
+                    <AppSidebar items={sidebarItems} />
+                  </div>
+
+                  {/* Main Content */}
+                  <main className="flex-1 p-4">{children}</main>
+                </div>
+              </div>
+            </SidebarProvider>
           )}
-          {/* ToastContainer to show toast notifications */}
           <ToastContainer position="top-right" autoClose={3000} />
         </UserProvider>
       </body>
