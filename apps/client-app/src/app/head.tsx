@@ -18,7 +18,6 @@ export const metadata: Metadata = {
       url: '/icons/icon-512x512.png',
     },
   ],
-  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
