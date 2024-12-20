@@ -41,8 +41,12 @@ const SidebarWithAccess = () => {
         setFilteredItems([]);
         return;
       }
+
       const organizationId = localStorage.getItem('selectedOrganizationId');
-      if (!organizationId) return;
+      if (!organizationId) {
+        setFilteredItems([]);
+        return;
+      }
 
       try {
         const userRoles = await fetchUserRolesByOrganization(
@@ -59,6 +63,7 @@ const SidebarWithAccess = () => {
         setFilteredItems(allowedItems);
       } catch (error) {
         console.error('Error fetching roles:', error);
+        setFilteredItems([]);
       }
     };
 
@@ -74,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const publicPages = ['/login', '/signup'];
+  const publicPages = ['/login', '/signup', '/404', '/500']; // Include common public/error pages
   const isPublicPage = publicPages.includes(pathname);
 
   return (

@@ -13,7 +13,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@shared/components/ui/dropdown-menu';
-import { withAuth } from '@shared/components/hoc/withAuth';
 
 interface Organization {
   id: string;
@@ -193,4 +192,4 @@ const DashboardPage = () => {
   );
 };
 
-export default withAuth(DashboardPage, { excludeOrgCheck: true });
+export default DashboardPage;

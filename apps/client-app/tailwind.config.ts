@@ -4,9 +4,7 @@ import sharedConfig from '../../shared/tailwind.config';
 export default {
   presets: [sharedConfig],
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{js,ts,jsx,tsx}', // App content
     '../../shared/**/*.{js,ts,jsx,tsx}',
     '!../../shared/node_modules', // Explicitly exclude node_modules
   ],

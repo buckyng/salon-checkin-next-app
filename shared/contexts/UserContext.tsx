@@ -46,6 +46,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useAuth = () => {
+  if (typeof window === 'undefined') {
+    // Return a default value or throw an error for server-side use
+    return { user: null, loading: true };
+  }
   const context = useContext(UserContext);
   if (!context) {
     throw new Error('useAuth must be used within a UserProvider');

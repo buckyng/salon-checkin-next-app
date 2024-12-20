@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useRouter } from 'next/navigation';
 
 const NotFound = () => {
@@ -16,7 +15,6 @@ const NotFound = () => {
         onClick={() => router.push('/')}
         className="px-4 py-2 mt-6 text-white bg-blue-500 rounded hover:bg-blue-600"
       >
-        Go to Home
       </button>
     </div>
   );

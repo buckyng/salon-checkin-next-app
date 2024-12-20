@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
   title: 'Salon Check-In App',
@@ -19,4 +19,8 @@ export const metadata: Metadata = {
     },
   ],
   manifest: '/manifest.json',
+};
+
+export const viewport: Viewport = {
+  themeColor: '#FFFFFF',
 };
