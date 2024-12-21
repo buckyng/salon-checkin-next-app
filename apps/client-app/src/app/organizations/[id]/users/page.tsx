@@ -15,6 +15,7 @@ import { Input } from '@shared/components/ui/input';
 import { Checkbox } from '@shared/components/ui/checkbox';
 import { toast } from 'react-toastify';
 import { withAuth } from '@shared/components/hoc/withAuth';
+import BackButton from '@shared/components/ui/BackButton';
 
 interface OrganizationUser {
   userId: string;
@@ -121,6 +122,7 @@ const ManageUsersPage = () => {
 
   return (
     <div className="container mx-auto mt-10">
+      <BackButton fallbackUrl={`/organizations/${organizationId}/owner`} />
       <h1 className="mb-6 text-2xl font-bold">Manage Users</h1>
 
       {/* Add User Section */}

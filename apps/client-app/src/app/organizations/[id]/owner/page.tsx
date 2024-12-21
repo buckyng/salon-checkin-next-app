@@ -25,7 +25,7 @@ const OwnerPage = () => {
           Manage Users
         </button>
         <button
-          onClick={() => router.push(`/organizations/${organizationId}/report`)}
+          onClick={() => router.push(`/organizations/${organizationId}/owner/report`)}
           className="px-4 py-2 text-white bg-green-500 rounded hover:bg-green-600"
         >
           View Reports

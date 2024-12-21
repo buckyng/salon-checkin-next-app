@@ -36,3 +36,34 @@ export interface EmployeeReport {
   sales?: SaleData[]; // Optional: An array of detailed sales for the date
 }
 
+export interface salesOfEmployeeEndOfDay {
+  id: string;
+  amount: number;
+  createdAt: string;
+  comboNum?: number;
+  note?: string | null;
+}
+
+export interface OwnerReport {
+  date: string; // The date for the report in 'YYYY-MM-DD' format
+  totalSales: number; // Total sales for the organization on that date
+  employeeSummaries: {
+    employeeId: string;
+    employeeName: string;
+    totalSale: number;
+    sales: salesOfEmployeeEndOfDay[];
+  }[];
+}
+
+export interface DetailsReportAllEmployees {
+  employeeId: string;
+  employeeName: string;
+  totalSale: number;
+  sales: {
+    id: string;
+    amount: number;
+    createdAt: string;
+    comboNum?: number;
+    note?: string | null;
+  }[];
+}

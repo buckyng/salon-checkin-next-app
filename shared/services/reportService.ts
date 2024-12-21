@@ -1,5 +1,5 @@
 import { db } from '@shared/services/firebase';
-import { EndOfDayReport } from '@shared/types/report';
+import { EndOfDayReport, OwnerReport } from '@shared/types/report';
 import { SaleData } from '@shared/types/transaction';
 import { getLocalDate } from '@shared/utils/params';
 import { endOfDay, parseISO, startOfDay } from 'date-fns';
@@ -159,4 +159,61 @@ export const fetchEmployeeSalesByDate = async ({
   return querySnapshot.docs.map((doc) => ({
     ...(doc.data() as SaleData),
   }));
+};
+
+export const fetchOwnerReport = async (
+  organizationId: string,
+  startDate: string,
+  endDate: string
+): Promise<OwnerReport[]> => {
+  const startTimestamp = startOfDay(parseISO(startDate)).toISOString();
+  const endTimestamp = endOfDay(parseISO(endDate)).toISOString();
+
+  const reportsCollection = collection(db, 'endOfDayReports');
+  const reportsQuery = query(
+    reportsCollection,
+    where('organizationId', '==', organizationId),
+    where('date', '>=', startDate),
+    where('date', '<=', endDate)
+  );
+
+  const querySnapshot = await getDocs(reportsQuery);
+
+  return querySnapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      date: data.date,
+      totalSales: data.totalSale,
+      employeeSummaries: data.employeeSummaries, // Summaries for each employee
+    };
+  });
+};
+
+export const fetchSalesDetailsByDate = async (
+  organizationId: string,
+  date: string
+) => {
+  const salesCollection = collection(db, 'endOfDayReports');
+  const salesQuery = query(
+    salesCollection,
+    where('organizationId', '==', organizationId),
+    where('date', '==', date) // Match the specific date
+  );
+
+  const querySnapshot = await getDocs(salesQuery);
+  if (querySnapshot.empty) {
+    return [];
+  }
+
+  const details = querySnapshot.docs.map((doc) => {
+    const data = doc.data().employeeSummaries;
+    return {
+      employeeId: data.employeeId,
+      employeeName: data.employeeName,
+      totalSale: data.totalSale,
+      sales: data.sales, // Include sales details for employees
+    };
+  });
+
+  return details;
 };
