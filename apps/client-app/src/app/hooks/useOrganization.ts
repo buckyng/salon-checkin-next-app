@@ -7,6 +7,7 @@ export const useOrganization = (paramOrgId?: string) => {
   const pathname = usePathname(); // Get the current route
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [organizationName, setOrganizationName] = useState<string>('');
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -14,15 +15,14 @@ export const useOrganization = (paramOrgId?: string) => {
 
     if (!orgId) {
       const storedOrgId = localStorage.getItem('selectedOrganizationId');
-      if (storedOrgId) {
+      const storedRole = localStorage.getItem('selectedRole');
+
+      if (storedOrgId && storedRole) {
         orgId = storedOrgId;
-        // Check if the current pathname already includes organizationId
-        if (!pathname.includes(orgId)) {
-          // Avoid overriding nested routes
-          router.replace(`/organizations/${orgId}`);
-        }
+        setSelectedRole(storedRole);
       } else {
-        router.push('/dashboard'); // Redirect to dashboard if no organizationId
+        // Redirect user back to dashboard if no orgId or role is selected
+        router.push('/dashboard');
         return;
       }
     }
@@ -52,5 +52,20 @@ export const useOrganization = (paramOrgId?: string) => {
     loadOrganizationName();
   }, [organizationId]);
 
-  return { organizationId, organizationName, loading };
+  // Fetch the selected role from localStorage
+  useEffect(() => {
+    const storedRole = localStorage.getItem('selectedRole');
+    if (storedRole) {
+      setSelectedRole(storedRole);
+    }
+  }, []);
+
+  return {
+    organizationId,
+    organizationName,
+    selectedRole,
+    setOrganizationId, // Allow manually setting organizationId
+    setSelectedRole, // Allow manually setting selectedRole
+    loading,
+  };
 };

@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar';
 import { AppSidebar } from '@shared/components/ui/app-sidebar';
 import { usePathname } from 'next/navigation';
-import { Building, Settings, BarChart, Menu } from 'lucide-react';
+import { Building, Settings, Menu } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { fetchUserRolesByOrganization } from '@shared/services/organizationService';
 import { sidebarAccess } from './configs/sidebarConfig';
@@ -27,7 +27,6 @@ const geistMono = localFont({
 // Sidebar items with access control
 const sidebarItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Building, key: 'dashboard' },
-  { title: 'Reports', url: '/reports', icon: BarChart, key: 'reports' },
   { title: 'Settings', url: '/settings', icon: Settings, key: 'settings' },
 ];
 
@@ -80,35 +79,39 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <UserProvider>
-          {isPublicPage ? (
-            // Public pages
-            <main>{children}</main>
-          ) : (
-            <SidebarProvider>
-              <div className="flex flex-col min-h-screen">
-                {/* Header for Mobile */}
-                <header className="flex items-center justify-between p-4 text-white bg-blue-500 md:hidden">
-                  <SidebarTrigger>
-                    <Menu className="w-6 h-6" />
-                  </SidebarTrigger>
-                </header>
+        <div className="min-h-screen bg-gray-100">
+          <UserProvider>
+            {isPublicPage ? (
+              // Public pages
+              <main className="min-h-screen">{children}</main>
+            ) : (
+              <SidebarProvider>
+                <div className="flex flex-col h-screen">
+                  {/* Header for Mobile */}
+                  <header className="flex items-center justify-between p-4 text-white bg-blue-500 md:hidden">
+                    <SidebarTrigger>
+                      <Menu className="w-6 h-6" />
+                    </SidebarTrigger>
+                  </header>
 
-                {/* Sidebar & Content */}
-                <div className="flex flex-1">
-                  {/* Sidebar (Mobile slide-in and Desktop fixed) */}
-                  <div className="hidden md:block">
-                    <SidebarWithAccess />
+                  {/* Sidebar & Content */}
+                  <div className="flex flex-1 overflow-hidde">
+                    {/* Sidebar (Mobile slide-in and Desktop fixed) */}
+                    <div className="hidden md:block">
+                      <SidebarWithAccess />
+                    </div>
+
+                    {/* Main Content */}
+                    <main className="flex-1 p-4 overflow-y-auto">
+                      {children}
+                    </main>
                   </div>
-
-                  {/* Main Content */}
-                  <main className="flex-1 p-4">{children}</main>
                 </div>
-              </div>
-            </SidebarProvider>
-          )}
-          <ToastContainer position="top-right" autoClose={3000} />
-        </UserProvider>
+              </SidebarProvider>
+            )}
+            <ToastContainer position="top-right" autoClose={3000} />
+          </UserProvider>
+        </div>
       </body>
     </html>
   );

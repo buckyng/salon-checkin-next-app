@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@shared/contexts/UserContext';
 import { fetchOrganizationSalesOfEmployee } from '@shared/services/saleService';
 import { DataTable } from '@shared/components/ui/data-table';
-import { toZonedTime, format as tzFormat } from 'date-fns-tz';
 import { Button } from '@shared/components/ui/button';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -13,6 +12,7 @@ import { SaleData } from '@shared/types/transaction';
 import { fetchUserRoles } from '@shared/services/organizationService';
 import { withAuth } from '@shared/components/hoc/withAuth';
 import { useOrganization } from '@/app/hooks/useOrganization';
+import { formatLocalTime } from '@shared/utils/formatDate';
 
 interface PageProps {
   params: Promise<{ organizationId: string }>;
@@ -39,11 +39,7 @@ const EmployeeHomePage = ({ params }: PageProps) => {
     {
       header: 'Time',
       accessorKey: 'createdAt',
-      cell: ({ getValue }) => {
-        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const localTime = toZonedTime(getValue<string>(), timeZone);
-        return tzFormat(localTime, 'HH:mm');
-      },
+      cell: ({ getValue }) => formatLocalTime(getValue<string>()),
     },
     {
       header: 'Amount',
@@ -101,6 +97,15 @@ const EmployeeHomePage = ({ params }: PageProps) => {
           }
         >
           Add Sale
+        </Button>
+
+        <Button
+          onClick={() =>
+            router.push(`/organizations/${organizationId}/employee/report`)
+          }
+          className="px-4 py-2 text-white bg-green-500 rounded hover:bg-green-600"
+        >
+          View Reports
         </Button>
       </div>
 

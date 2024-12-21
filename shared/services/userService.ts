@@ -112,7 +112,8 @@ export const fetchEmployeeNames = async (
 
     // Map employee IDs to their display names
     return userSnapshots.docs.reduce<Record<string, string>>((acc, doc) => {
-      acc[doc.id] = doc.data().displayName || 'Unknown';
+      acc[doc.id] =
+        doc.data().firstName + ' ' + doc.data().lastName || 'Unknown';
       return acc;
     }, {});
   } catch (error) {

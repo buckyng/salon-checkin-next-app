@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@shared/contexts/UserContext';
 import {
@@ -13,6 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@shared/components/ui/dropdown-menu';
+import { useOrganization } from '@/app/hooks/useOrganization';
 
 interface Organization {
   id: string;
@@ -20,17 +21,17 @@ interface Organization {
 }
 
 const DashboardPage = () => {
-  const { user } = useAuth(); // Get authenticated user from context
+  const { user } = useAuth(); // Get authenticated user
+  const { organizationId, setOrganizationId, setSelectedRole } =
+    useOrganization();
   const router = useRouter();
 
   const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [selectedOrganization, setSelectedOrganization] =
-    useState<Organization | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [activeRole, setActiveRole] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Fetch roles when the organization changes
+  // Fetch roles dynamically when the organization changes
   const fetchRolesForOrganization = useCallback(
     async (orgId: string) => {
       if (!user?.uid) return;
@@ -38,7 +39,6 @@ const DashboardPage = () => {
       try {
         const userRoles = await fetchUserRolesByOrganization(user.uid, orgId);
         const flattenedRoles = userRoles.map((role) => role.roles).flat();
-
         setRoles(flattenedRoles);
         setActiveRole(flattenedRoles[0] || null); // Default to first role
       } catch (error) {
@@ -48,7 +48,7 @@ const DashboardPage = () => {
     [user?.uid]
   );
 
-  // Load organizations and select the first one if needed
+  // Load organizations and initialize organization/role
   useEffect(() => {
     const fetchUserOrganizations = async () => {
       if (!user?.uid) return;
@@ -63,7 +63,7 @@ const DashboardPage = () => {
           userOrganizations[0];
 
         if (defaultOrganization) {
-          setSelectedOrganization(defaultOrganization);
+          setOrganizationId(defaultOrganization.id); // Save to context
           fetchRolesForOrganization(defaultOrganization.id);
           localStorage.setItem(
             'selectedOrganizationId',
@@ -78,34 +78,43 @@ const DashboardPage = () => {
     };
 
     fetchUserOrganizations();
-  }, [user?.uid, fetchRolesForOrganization]);
+  }, [user?.uid, fetchRolesForOrganization, setOrganizationId]);
 
+  // Handle organization selection
   const handleOrganizationSelect = (org: Organization) => {
-    setSelectedOrganization(org);
+    setOrganizationId(org.id);
+    setRoles([]); // Clear roles on org change
     localStorage.setItem('selectedOrganizationId', org.id);
     fetchRolesForOrganization(org.id);
   };
 
+  // Handle role selection
   const handleRoleSelect = (role: string) => {
     setActiveRole(role);
+    setSelectedRole(role); // Save selected role to context
     localStorage.setItem('selectedRole', role);
   };
 
+  // Navigate to the selected role page
   const handleNavigate = () => {
-    if (!selectedOrganization || !activeRole) return;
+    if (!organizationId || !activeRole) {
+      console.error('Organization or role not selected.');
+      return;
+    }
 
+    const baseUrl = `/organizations/${organizationId}`;
     switch (activeRole) {
       case 'owner':
-        router.push(`/organizations/${selectedOrganization.id}/users`);
+        router.push(`${baseUrl}/owner`);
         break;
       case 'employee':
-        router.push(`/organizations/${selectedOrganization.id}/employee`);
+        router.push(`${baseUrl}/employee`);
         break;
       case 'manager':
-        router.push(`/organizations/${selectedOrganization.id}/manager`);
+        router.push(`${baseUrl}/manager`);
         break;
       case 'cashier':
-        router.push(`/organizations/${selectedOrganization.id}/cashier`);
+        router.push(`${baseUrl}/cashier`);
         break;
       default:
         console.error('Invalid role selected');
@@ -121,13 +130,14 @@ const DashboardPage = () => {
       <h1 className="mb-6 text-3xl font-bold">Dashboard</h1>
 
       {/* Organization Selection */}
-      {selectedOrganization && (
+      {organizations.length > 0 && (
         <div className="mb-4">
-          <h2 className="mb-2 text-lg font-semibold">Organization</h2>
+          <h2 className="mb-2 text-lg font-semibold">Select Organization</h2>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="p-2 text-white bg-blue-500 rounded">
-                {selectedOrganization.name}
+                {organizations.find((org) => org.id === organizationId)?.name ||
+                  'Select Organization'}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -145,7 +155,7 @@ const DashboardPage = () => {
       )}
 
       {/* Warning Text if No Roles */}
-      {roles.length === 0 && selectedOrganization && (
+      {roles.length === 0 && organizationId && (
         <div className="mb-4 text-center text-red-500">
           You do not have any roles in this organization. Please contact your
           administrator.
