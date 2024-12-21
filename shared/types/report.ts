@@ -29,3 +29,10 @@ export interface EmployeeSales {
   total: number;
   sales: SaleData[]; // Assuming SaleData is already defined
 }
+
+export interface EmployeeReport {
+  date: string; // The date of the report in 'yyyy-MM-dd' format
+  totalSales: number; // The total sales amount for the specified date
+  sales?: SaleData[]; // Optional: An array of detailed sales for the date
+}
+
