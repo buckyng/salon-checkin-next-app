@@ -1,7 +1,5 @@
-import NotFound from '@shared/components/ui/NotFound';
-
 const NotFoundPage = () => {
-  return <NotFound />;
+  return <div>Simple 404 Page</div>; // Temporary replacement
 };
 
 export default NotFoundPage;
