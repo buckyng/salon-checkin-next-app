@@ -1,17 +1,13 @@
 'use client';
-
 import localFont from 'next/font/local';
 import '@shared/styles/global.css';
-import { UserProvider, useAuth } from '@shared/contexts/UserContext';
+import { UserProvider } from '@shared/contexts/UserContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { SidebarProvider, SidebarTrigger } from '@shared/components/ui/sidebar';
 import { AppSidebar } from '@shared/components/ui/app-sidebar';
 import { usePathname } from 'next/navigation';
-import { Building, Settings, Menu } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { fetchUserRolesByOrganization } from '@shared/services/organizationService';
-import { sidebarAccess } from './configs/sidebarConfig';
+import { Building, Settings } from 'lucide-react';
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -30,41 +26,6 @@ const sidebarItems = [
   { title: 'Settings', url: '/settings', icon: Settings, key: 'settings' },
 ];
 
-const SidebarWithAccess = () => {
-  const { user } = useAuth();
-  const [filteredItems, setFilteredItems] = useState(sidebarItems);
-
-  useEffect(() => {
-    const filterItems = async () => {
-      if (!user?.uid) return;
-
-      const organizationId = localStorage.getItem('selectedOrganizationId');
-      if (!organizationId) return;
-
-      try {
-        const userRoles = await fetchUserRolesByOrganization(
-          user.uid,
-          organizationId
-        );
-        const roles = userRoles.map((role) => role.roles).flat();
-
-        const allowedItems = sidebarItems.filter((item) => {
-          const allowedRoles = sidebarAccess[item.key];
-          return allowedRoles?.some((role) => roles.includes(role));
-        });
-
-        setFilteredItems(allowedItems);
-      } catch (error) {
-        console.error('Error fetching roles:', error);
-      }
-    };
-
-    filterItems();
-  }, [user]);
-
-  return <AppSidebar items={filteredItems} />;
-};
-
 export default function RootLayout({
   children,
 }: {
@@ -79,39 +40,21 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="min-h-screen bg-gray-100">
-          <UserProvider>
-            {isPublicPage ? (
-              // Public pages
-              <main className="min-h-screen">{children}</main>
-            ) : (
-              <SidebarProvider>
-                <div className="flex flex-col h-screen">
-                  {/* Header for Mobile */}
-                  <header className="flex items-center justify-between p-4 text-white bg-blue-500 md:hidden">
-                    <SidebarTrigger>
-                      <Menu className="w-6 h-6" />
-                    </SidebarTrigger>
-                  </header>
-
-                  {/* Sidebar & Content */}
-                  <div className="flex flex-1 overflow-hidde">
-                    {/* Sidebar (Mobile slide-in and Desktop fixed) */}
-                    <div className="hidden md:block">
-                      <SidebarWithAccess />
-                    </div>
-
-                    {/* Main Content */}
-                    <main className="flex-1 p-4 overflow-y-auto">
-                      {children}
-                    </main>
-                  </div>
-                </div>
-              </SidebarProvider>
-            )}
-            <ToastContainer position="top-right" autoClose={3000} />
-          </UserProvider>
-        </div>
+        <UserProvider>
+          {isPublicPage ? (
+            // Public pages
+            <main>{children}</main>
+          ) : (
+            <SidebarProvider>
+              <AppSidebar items={sidebarItems} />
+              <main>
+                <SidebarTrigger />
+                {children}
+              </main>
+            </SidebarProvider>
+          )}
+          <ToastContainer position="top-right" autoClose={3000} />
+        </UserProvider>
       </body>
     </html>
   );

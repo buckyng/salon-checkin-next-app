@@ -40,12 +40,21 @@ const DashboardPage = () => {
         const userRoles = await fetchUserRolesByOrganization(user.uid, orgId);
         const flattenedRoles = userRoles.map((role) => role.roles).flat();
         setRoles(flattenedRoles);
-        setActiveRole(flattenedRoles[0] || null); // Default to first role
+
+        if (flattenedRoles.length === 1) {
+          // If only one role, set it as the active role
+          const singleRole = flattenedRoles[0];
+          setActiveRole(singleRole);
+          setSelectedRole(singleRole);
+          localStorage.setItem('selectedRole', singleRole);
+        } else {
+          setActiveRole(null); // Reset active role if multiple roles
+        }
       } catch (error) {
         console.error('Error fetching roles:', error);
       }
     },
-    [user?.uid]
+    [setSelectedRole, user?.uid]
   );
 
   // Load organizations and initialize organization/role
@@ -64,7 +73,7 @@ const DashboardPage = () => {
 
         if (defaultOrganization) {
           setOrganizationId(defaultOrganization.id); // Save to context
-          fetchRolesForOrganization(defaultOrganization.id);
+          await fetchRolesForOrganization(defaultOrganization.id);
           localStorage.setItem(
             'selectedOrganizationId',
             defaultOrganization.id
@@ -81,11 +90,11 @@ const DashboardPage = () => {
   }, [user?.uid, fetchRolesForOrganization, setOrganizationId]);
 
   // Handle organization selection
-  const handleOrganizationSelect = (org: Organization) => {
+  const handleOrganizationSelect = async (org: Organization) => {
     setOrganizationId(org.id);
     setRoles([]); // Clear roles on org change
     localStorage.setItem('selectedOrganizationId', org.id);
-    fetchRolesForOrganization(org.id);
+    await fetchRolesForOrganization(org.id);
   };
 
   // Handle role selection
@@ -111,10 +120,13 @@ const DashboardPage = () => {
         router.push(`${baseUrl}/employee`);
         break;
       case 'manager':
-        router.push(`${baseUrl}/manager`);
+        router.push(`${baseUrl}/manager/check-in-management`);
         break;
       case 'cashier':
         router.push(`${baseUrl}/cashier`);
+        break;
+      case 'check-in':
+        router.push(`${baseUrl}/check-in`);
         break;
       default:
         console.error('Invalid role selected');
