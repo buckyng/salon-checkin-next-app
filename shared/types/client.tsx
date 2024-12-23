@@ -5,5 +5,6 @@ export interface Client {
   phone: string;
   email?: string;  
   numberOfVisits?: number;
+  lastVisitRating?: number;
   agreeToTerms: boolean;
 }

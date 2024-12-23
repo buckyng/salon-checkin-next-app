@@ -64,7 +64,7 @@ const CheckInManagementPage = () => {
               );
               return {
                 ...checkIn,
-                visitsBeforeToday: clientData.visitsBeforeToday || 0,
+                visitsBeforeToday: clientData.numberOfVisits || 0,
                 lastVisitRating: clientData.lastVisitRating || null,
               };
             } catch (error) {

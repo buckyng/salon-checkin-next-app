@@ -52,12 +52,7 @@ const getCheckInsCollection = (organizationId: string) => {
 export const fetchClientById = async (
   organizationId: string,
   clientId: string
-): Promise<{
-  firstName: string;
-  lastName: string;
-  visitsBeforeToday?: number;
-  lastVisitRating?: number | null;
-}> => {
+): Promise<Client> => {
   try {
     const clientRef = doc(
       db,
@@ -72,12 +67,7 @@ export const fetchClientById = async (
       throw new Error(`Client with ID ${clientId} not found`);
     }
 
-    return clientSnapshot.data() as {
-      firstName: string;
-      lastName: string;
-      visitsBeforeToday?: number;
-      lastVisitRating?: number | null;
-    };
+    return clientSnapshot.data() as Client;
   } catch (error) {
     console.error('Error querying client by Id:', error);
     throw error; // Ensure the error is propagated back to the caller
