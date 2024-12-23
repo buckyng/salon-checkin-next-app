@@ -2,6 +2,7 @@ export interface Organization {
   id: string;
   name: string;
   createdAt: Date;
+  logoUrl?: string;
   owner: {
     email: string;
     uid: string;

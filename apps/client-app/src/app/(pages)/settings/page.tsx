@@ -23,7 +23,7 @@ const SettingsPage = () => {
   const [photoURL, setPhotoURL] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProfilePhoto = async () => {
+    const fetchProfileInfo = async () => {
       if (!user?.uid) return;
 
       try {
@@ -42,7 +42,7 @@ const SettingsPage = () => {
       }
     };
 
-    fetchProfilePhoto();
+    fetchProfileInfo();
   }, [user]);
 
   const handleSave = async () => {

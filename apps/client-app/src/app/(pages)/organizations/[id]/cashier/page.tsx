@@ -8,14 +8,14 @@ import {
 import { SaleData } from '@shared/types/transaction';
 import { DataTable } from '@shared/components/ui/data-table';
 import { Button } from '@shared/components/ui/button';
-import { format, parseISO } from 'date-fns';
-import { toZonedTime, format as tzFormat } from 'date-fns-tz';
+import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import { useOrganization } from '@/app/hooks/useOrganization';
 import { useRouter } from 'next/navigation';
 import { fetchUserRoles } from '@shared/services/organizationService';
 import { withAuth } from '@shared/components/hoc/withAuth';
 import { ColumnDef } from '@tanstack/react-table';
+import { formatLocalTime } from '@shared/utils/formatDate';
 
 interface GroupedSale {
   comboNum?: number | null;
@@ -167,13 +167,7 @@ const CashierPage = ({ params }: PageProps) => {
     {
       header: 'Time',
       accessorKey: 'createdAt',
-      cell: ({ row }) => {
-        const localTime = toZonedTime(
-          parseISO(row.getValue('createdAt')),
-          Intl.DateTimeFormat().resolvedOptions().timeZone
-        );
-        return tzFormat(localTime, 'HH:mm:ss');
-      },
+      cell: ({ getValue }) => formatLocalTime(getValue<string>()),
     },
     { header: 'Employee Name', accessorKey: 'employeeName' },
     {

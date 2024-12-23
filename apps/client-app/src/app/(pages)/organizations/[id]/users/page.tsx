@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@shared/contexts/UserContext'; // Import your authentication context
 import {
   fetchUsersByOrganization,
@@ -16,6 +15,7 @@ import { Checkbox } from '@shared/components/ui/checkbox';
 import { toast } from 'react-toastify';
 import { withAuth } from '@shared/components/hoc/withAuth';
 import BackButton from '@shared/components/ui/BackButton';
+import { useOrganization } from '@/app/hooks/useOrganization';
 
 interface OrganizationUser {
   userId: string;
@@ -25,36 +25,24 @@ interface OrganizationUser {
   createdAt: Date;
 }
 
+const userRoles = ['manager', 'cashier', 'employee', 'check-in'];
+
 const ManageUsersPage = () => {
-  const params = useParams();
-  const router = useRouter();
   const { user } = useAuth(); // Use authenticated user context to get `ownerId`
-  const [organizationId, setOrganizationId] = useState<string>('');
+  const { organizationId } = useOrganization();
 
   const [users, setUsers] = useState<OrganizationUser[]>([]);
   const [newUserEmail, setNewUserEmail] = useState('');
   const [updatingUser, setUpdatingUser] = useState<string | null>(null);
 
   useEffect(() => {
-    let orgId = params?.id as string;
-
-    if (!orgId) {
-      const storedOrgId = localStorage.getItem('selectedOrganizationId');
-      if (storedOrgId) {
-        orgId = storedOrgId;
-        router.push(`/organizations/${orgId}/manage-users`); // Update the URL
-      } else {
-        router.push('/dashboard'); // Redirect to dashboard
-        return;
-      }
-    }
-
-    setOrganizationId(orgId);
-
     const loadUsers = async () => {
       try {
-        if (!user?.uid || !orgId) return;
-        const orgUsers = await fetchUsersByOrganization(orgId, user.uid);
+        if (!user?.uid || !organizationId) return;
+        const orgUsers = await fetchUsersByOrganization(
+          organizationId,
+          user.uid
+        );
         setUsers(orgUsers);
       } catch (error) {
         console.error('Error fetching users:', error);
@@ -63,7 +51,7 @@ const ManageUsersPage = () => {
     };
 
     loadUsers();
-  }, [params, router, user]);
+  }, [organizationId, user]);
 
   const handleAddUser = async () => {
     if (!newUserEmail.trim()) {
@@ -72,6 +60,7 @@ const ManageUsersPage = () => {
     }
 
     try {
+      if (!user?.uid || !organizationId) return;
       await addUserToOrganization(organizationId, newUserEmail.trim());
       toast.success('User added successfully.');
       setNewUserEmail('');
@@ -90,11 +79,12 @@ const ManageUsersPage = () => {
     setUpdatingUser(userId);
 
     try {
+      if (!user?.uid || !organizationId) return;
       await updateUserRoles(organizationId, userId, roles);
       toast.success('Roles updated successfully.');
       const updatedUsers = await fetchUsersByOrganization(
         organizationId,
-        user!.uid
+        user.uid
       ); // Pass `ownerId`
       setUsers(updatedUsers);
     } catch (error) {
@@ -107,6 +97,7 @@ const ManageUsersPage = () => {
 
   const handleRemoveUser = async (userId: string) => {
     try {
+      if (!user?.uid || !organizationId) return;
       await removeUserFromOrganization(organizationId, userId);
       toast.success('User removed successfully.');
       const updatedUsers = await fetchUsersByOrganization(
@@ -167,7 +158,7 @@ const ManageUsersPage = () => {
             <div>
               <h3 className="mb-2 text-sm font-semibold">Roles</h3>
               <div className="flex items-center gap-4">
-                {['manager', 'cashier', 'employee'].map((role) => (
+                {userRoles.map((role) => (
                   <div key={role} className="flex items-center gap-2">
                     <Checkbox
                       checked={user.roles.includes(role)}
